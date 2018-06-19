@@ -1,0 +1,26 @@
+{
+  "name": "boilerplate-three",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/florianmaxim/boilerplate-three.git"
+  },
+  "author": "Florian Maxim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/florianmaxim/boilerplate-three/issues"
+  },
+  "homepage": "https://github.com/florianmaxim/boilerplate-three#readme",
+  "dependencies": {
+    "three": "^0.92.0"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.8.1"
+  }
+}
