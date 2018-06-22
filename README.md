@@ -1,10 +1,12 @@
 # <p align="center">TinderXR</p>
 
-## A Haptical & Spatial Tinder Implementation
+## <p align="center">Haptical & Spatial Tinder Implementation</p>
 
-There is a white room. And it's raining golden-framed matches.
+### <p align="center">There is a white room. And it's raining golden-framed matches.</p>
 
+<p align="center">
 <img src="research/screen-1.jpg"/>
+</p>
 
 # Research
 
