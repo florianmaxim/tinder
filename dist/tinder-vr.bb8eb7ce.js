@@ -43043,7 +43043,7 @@ function init() {
 			var divisions = 200;
 
 			var gridHelper = new THREE.GridHelper(size, divisions);
-			scene.add(gridHelper);
+			//scene.add( gridHelper );
 
 			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
@@ -43059,10 +43059,12 @@ function init() {
 			floor.receiveShadow = true;
 			scene.add(floor);
 
+			scene.add(new THREE.AmbientLight(0xffffff));
+
 			scene.add(new THREE.HemisphereLight(0x808080, 0x606060, 0.5));
 
 			var light = new THREE.DirectionalLight(0xffffff);
-			light.position.set(2, 6, 0);
+			light.position.set(2, 1, 0);
 			light.castShadow = true;
 			light.shadow.camera.top = 2;
 			light.shadow.camera.bottom = -2;
@@ -43074,59 +43076,19 @@ function init() {
 			group = new THREE.Group();
 			scene.add(group);
 
-			var geometries = [new THREE.BoxBufferGeometry(0.2, 0.2, 0.2), new THREE.ConeBufferGeometry(0.2, 0.2, 64), new THREE.CylinderBufferGeometry(0.2, 0.2, 0.2, 64), new THREE.IcosahedronBufferGeometry(0.2, 3), new THREE.TorusBufferGeometry(0.2, 0.04, 64, 32)];
-
-			/*for ( var i = 0; i < 50; i ++ ) {
-   
-   	var geometry = geometries[ Math.floor( Math.random() * geometries.length ) ];
-   	var material = new THREE.MeshStandardMaterial( {
-   		color: Math.random() * 0xffffff,
-   		roughness: 0.7,
-   		metalness: 0.0
-   	} );
-   
-   	var object = new THREE.Mesh( geometry, material );
-   
-   	object.position.x = Math.random() * 4 - 2;
-   	object.position.y = Math.random() * 2;
-   	object.position.z = Math.random() * 4 - 2;
-   
-   	object.rotation.x = Math.random() * 2 * Math.PI;
-   	object.rotation.y = Math.random() * 2 * Math.PI;
-   	object.rotation.z = Math.random() * 2 * Math.PI;
-   
-   	object.scale.setScalar( Math.random() + 0.5 );
-   
-   	object.castShadow = true;
-   	object.receiveShadow = true;
-   
-   
-   
-   	new THREE.BoxBufferGeometry( 0.2, 0.2, 0.2 )
-   	var material = new THREE.MeshStandardMaterial( {
-   		color: Math.random() * 0xffffff,
-   		roughness: 0.7,
-   		metalness: 0.0
-   	} );
-   
-   	var object = new THREE.Mesh( geometry, material );
-   
-   	group.add( object );
-   
-   }*/
-
-			var geometry = new THREE.BoxBufferGeometry(0.5, 0.125, 0.5);
+			var geometry = new THREE.BoxBufferGeometry(1.5, 0.25, 2.1);
 			var material = new THREE.MeshStandardMaterial({
 						color: Math.random() * 0x0000ff,
 						roughness: 0.7,
 						metalness: 0.0,
 						transparent: true,
-						opacity: 0
+						opacity: 0,
+						wireframe: true
 			});
 
 			house = new THREE.Mesh(geometry, material);
 
-			group.add(house);
+			//group.add( house );
 
 			//
 
@@ -43183,20 +43145,79 @@ function init() {
 						reflectivity: .25 });
 
 			var loader = new THREE.OBJLoader();
-			loader.setPath('models/frames/');
-			loader.load('frame.obj', function (object) {
 
-						object.traverse(function (obj) {
+			loader.load('models/frames/frame.obj', function (object) {
 
-									obj.scale.set(0.5, 0.5, 0.5);
-									obj.material = materialGold;
+						var loader = new THREE.TextureLoader();
+
+						// load a resource
+						loader.load(
+						// resource URL
+						'models/frames/me.jpg',
+
+						// onLoad callback
+						function (texture) {
+
+									object.traverse(function (obj) {
+
+												obj.castShadow = true;
+
+												if (obj.name == 'picture') {
+															console.log(obj);
+
+															obj.material.transparent = true;
+															obj.material.opacity = 0;
+															//obj.material.color = 0xffffff
+
+															texture.wrapS = THREE.RepeatWrapping;
+															texture.wrapT = THREE.RepeatWrapping;
+															//texture.repeat.set( 4, 4 );
+
+															var geo = new THREE.PlaneGeometry(1, 1.6);
+															var mat = new THREE.MeshBasicMaterial();
+															var mes = new THREE.Mesh(geo, mat);
+															//mes.material.side = THREE.DoubleSide
+															mes.material.map = texture;
+															mes.scale.set(1.1, 1.1, 1.1);
+
+															mes.rotation.x = -Math.PI / 2;
+
+															object.add(mes);
+												} else {
+															obj.material = materialGold;
+												}
+									});
+
+									//house.material.map = texture
+
+									house.add(object);
+
+									function randomIntFromInterval(min, max) {
+												return Math.floor(Math.random() * (max - min + 1) + min);
+									}
+									var amount = 25;
+
+									for (var i = 0; i <= amount; i++) {
+												var clone = house.clone();
+												var scale = Math.random();
+												clone.scale.set(scale, scale, scale);
+												clone.position.set(randomIntFromInterval(-5, 5), randomIntFromInterval(-5, 5), randomIntFromInterval(-5, 5));
+
+												clone.rotation.x = Math.random() * 2 * Math.PI;
+												clone.rotation.y = Math.random() * 2 * Math.PI;
+												clone.rotation.z = Math.random() * 2 * Math.PI;
+
+												group.add(clone);
+									}
+						},
+
+						// onProgress callback currently not supported
+						undefined,
+
+						// onError callback
+						function (err) {
+									console.error('An error happened.');
 						});
-
-						object.castShadow;
-
-						object.position.set(.125, 0, 0);
-
-						house.add(object);
 			});
 
 			//
@@ -43325,7 +43346,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":3}],10:[function(require,module,exports) {
+},{"three":3}],4:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -43354,7 +43375,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '54777' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '58721' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -43495,5 +43516,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[10,2], null)
+},{}]},{},[4,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map
