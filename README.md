@@ -1,4 +1,9 @@
-# Tinder VR
+<p align="center">
+# TinderXR
+
+
+## A Haptical & Spatial Tinder Implementation
+
 There is a white room. And it's raining golden-framed matches.
 
 <img src="research/screen-1.jpg"/>
@@ -11,3 +16,4 @@ There is a white room. And it's raining golden-framed matches.
 https://free3d.com/3d-model/frame-75994.html
 
 https://free3d.com/3d-model/picture-frame-collection-5269.html
+</p>
