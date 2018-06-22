@@ -7,6 +7,14 @@ import * as THREE from 'three';
 
 let scope
 
+var gamepad;
+    
+var axes = [ 0, 0 ];
+var thumbpadIsPressed = false;
+var triggerIsPressed = false;
+var gripsArePressed = false;
+var menuIsPressed = false;
+
 export default class ViveController extends THREE.Object3D {
 
     constructor( id ){
@@ -18,13 +26,6 @@ export default class ViveController extends THREE.Object3D {
         this._id = id;
 
         scope = this;
-        var gamepad;
-    
-        var axes = [ 0, 0 ];
-        var thumbpadIsPressed = false;
-        var triggerIsPressed = false;
-        var gripsArePressed = false;
-        var menuIsPressed = false;
 
         this.matrixAutoUpdate = false;
         this.standingMatrix = new THREE.Matrix4();

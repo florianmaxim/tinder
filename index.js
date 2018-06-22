@@ -1,10 +1,134 @@
 import * as THREE from 'three';
 
-import ViveController from './controller/ViveController';
-
 /**
- * @author mrdoob / http://mrdoob.com/
+ * @author mrdoob / http://mrdoob.com
+ * @author stewdio / http://stewd.io
  */
+
+THREE.ViveController = function ( id ) {
+
+	THREE.Object3D.call( this );
+
+	var scope = this;
+	var gamepad;
+
+	var axes = [ 0, 0 ];
+	var thumbpadIsPressed = false;
+	var triggerIsPressed = false;
+	var gripsArePressed = false;
+	var menuIsPressed = false;
+
+	function findGamepad( id ) {
+
+		// Iterate across gamepads as Vive Controllers may not be
+		// in position 0 and 1.
+
+		var gamepads = navigator.getGamepads && navigator.getGamepads();
+
+		for ( var i = 0, j = 0; i < gamepads.length; i ++ ) {
+
+			var gamepad = gamepads[ i ];
+
+			if ( gamepad && ( gamepad.id === 'OpenVR Gamepad' || gamepad.id.startsWith( 'Oculus Touch' ) || gamepad.id.startsWith( 'Spatial Controller' ) ) ) {
+
+				if ( j === id ) return gamepad;
+
+				j ++;
+
+			}
+
+		}
+
+	}
+
+	this.matrixAutoUpdate = false;
+	this.standingMatrix = new THREE.Matrix4();
+
+	this.getGamepad = function () {
+
+		return gamepad;
+
+	};
+
+	this.getButtonState = function ( button ) {
+
+		if ( button === 'thumbpad' ) return thumbpadIsPressed;
+		if ( button === 'trigger' ) return triggerIsPressed;
+		if ( button === 'grips' ) return gripsArePressed;
+		if ( button === 'menu' ) return menuIsPressed;
+
+	};
+
+	this.update = function () {
+
+		gamepad = findGamepad( id );
+
+		if ( gamepad !== undefined && gamepad.pose !== undefined ) {
+
+			if ( gamepad.pose === null ) return; // No user action yet
+
+			//  Position and orientation.
+
+			var pose = gamepad.pose;
+
+			if ( pose.position !== null ) scope.position.fromArray( pose.position );
+			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
+			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
+			scope.matrix.premultiply( scope.standingMatrix );	
+			scope.matrixWorldNeedsUpdate = true;
+			scope.visible = true;
+
+			//  Thumbpad and Buttons.
+
+			if ( axes[ 0 ] !== gamepad.axes[ 0 ] || axes[ 1 ] !== gamepad.axes[ 1 ] ) {
+
+				axes[ 0 ] = gamepad.axes[ 0 ]; //  X axis: -1 = Left, +1 = Right.
+				axes[ 1 ] = gamepad.axes[ 1 ]; //  Y axis: -1 = Bottom, +1 = Top.
+				scope.dispatchEvent( { type: 'axischanged', axes: axes } );
+
+			}
+
+			if ( thumbpadIsPressed !== gamepad.buttons[ 0 ].pressed ) {
+
+				thumbpadIsPressed = gamepad.buttons[ 0 ].pressed;
+				scope.dispatchEvent( { type: thumbpadIsPressed ? 'thumbpaddown' : 'thumbpadup', axes: axes } );
+
+			}
+
+			if ( triggerIsPressed !== gamepad.buttons[ 1 ].pressed ) {
+
+				triggerIsPressed = gamepad.buttons[ 1 ].pressed;
+				scope.dispatchEvent( { type: triggerIsPressed ? 'triggerdown' : 'triggerup' } );
+
+			}
+
+			if ( gripsArePressed !== gamepad.buttons[ 2 ].pressed ) {
+
+				gripsArePressed = gamepad.buttons[ 2 ].pressed;
+				scope.dispatchEvent( { type: gripsArePressed ? 'gripsdown' : 'gripsup' } );
+
+			}
+
+			if ( menuIsPressed !== gamepad.buttons[ 3 ].pressed ) {
+
+				menuIsPressed = gamepad.buttons[ 3 ].pressed;
+				scope.dispatchEvent( { type: menuIsPressed ? 'menudown' : 'menuup' } );
+
+			}
+
+		} else {
+
+			scope.visible = false;
+
+		}
+
+	};
+
+};
+
+THREE.ViveController.prototype = Object.create( THREE.Object3D.prototype );
+THREE.ViveController.prototype.constructor = THREE.ViveController;
+
 
 THREE.OBJLoader = ( function () {
 
@@ -1040,9 +1164,10 @@ var raycaster, intersected = [];
 var tempMatrix = new THREE.Matrix4();
 
 var group;
+let house;
 
 init();
-render();
+animate();
 
 function init() {
 
@@ -1056,16 +1181,24 @@ function init() {
 	info.style.top = '10px';
 	info.style.width = '100%';
 	info.style.textAlign = 'center';
-	info.innerHTML = '<a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - htc vive';
 	container.appendChild( info );
 
 	scene = new THREE.Scene();
-	scene.background = new THREE.Color( 0x808080 );
+	scene.background = new THREE.Color( 0xFFFFFF );
+
+	scene.fog = new THREE.Fog(0xffffff, 0, 10)
+
+	var size = 100;
+	var divisions = 200;
+
+	var gridHelper = new THREE.GridHelper( size, divisions );
+	scene.add( gridHelper );
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
 	var geometry = new THREE.PlaneBufferGeometry( 4, 4 );
 	var material = new THREE.MeshStandardMaterial( {
+		//color: 0x0000ff,		
 		color: 0xeeeeee,
 		roughness: 1.0,
 		metalness: 0.0
@@ -1075,10 +1208,10 @@ function init() {
 	floor.receiveShadow = true;
 	scene.add( floor );
 
-	scene.add( new THREE.HemisphereLight( 0x808080, 0x606060 ) );
+	scene.add( new THREE.HemisphereLight( 0x808080, 0x606060, 0.5 ) );
 
 	var light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 0, 6, 0 );
+	light.position.set( 2, 6, 0 );
 	light.castShadow = true;
 	light.shadow.camera.top = 2;
 	light.shadow.camera.bottom = -2;
@@ -1098,7 +1231,7 @@ function init() {
 		new THREE.TorusBufferGeometry( 0.2, 0.04, 64, 32 )
 	];
 
-	for ( var i = 0; i < 50; i ++ ) {
+	/*for ( var i = 0; i < 50; i ++ ) {
 
 		var geometry = geometries[ Math.floor( Math.random() * geometries.length ) ];
 		var material = new THREE.MeshStandardMaterial( {
@@ -1122,9 +1255,33 @@ function init() {
 		object.castShadow = true;
 		object.receiveShadow = true;
 
+
+
+		new THREE.BoxBufferGeometry( 0.2, 0.2, 0.2 )
+		var material = new THREE.MeshStandardMaterial( {
+			color: Math.random() * 0xffffff,
+			roughness: 0.7,
+			metalness: 0.0
+		} );
+
+		var object = new THREE.Mesh( geometry, material );
+
 		group.add( object );
 
-	}
+	}*/
+
+	var geometry = new THREE.BoxBufferGeometry(0.5,0.125,0.5)
+	var material = new THREE.MeshStandardMaterial( {
+		color: Math.random() * 0x0000ff,
+		roughness: 0.7,
+		metalness: 0.0,
+		transparent: true,
+		opacity: 0
+	} );
+
+	house = new THREE.Mesh( geometry, material );
+
+	group.add( house );
 
 	//
 
@@ -1141,13 +1298,13 @@ function init() {
 
 	// controllers
 
-	controller1 = new ViveController( 0 );
+	controller1 = new THREE.ViveController( 0 );
 	controller1.standingMatrix = renderer.vr.getStandingMatrix();
 	controller1.addEventListener( 'triggerdown', onTriggerDown );
 	controller1.addEventListener( 'triggerup', onTriggerUp );
 	scene.add( controller1 );
 
-	controller2 = new ViveController( 1 );
+	controller2 = new THREE.ViveController( 1 );
 	controller2.standingMatrix = renderer.vr.getStandingMatrix();
 	controller2.addEventListener( 'triggerdown', onTriggerDown );
 	controller2.addEventListener( 'triggerup', onTriggerUp );
@@ -1166,6 +1323,37 @@ function init() {
 
 		controller1.add( object.clone() );
 		controller2.add( object.clone() );
+
+	} );
+
+	const materialGold = new THREE.MeshPhongMaterial( {
+		side: THREE.DoubleSide,
+		color: 0x564100,
+	   specular:0x937300,
+		emissive:0xffffff,
+		emissiveIntensity:.1,
+	  
+		//envMap: reflectionCube,
+		//displacementMap: reflectionCube,
+		//combine: THREE.MixOperation,
+		reflectivity: .25} 
+  	);
+
+	var loader = new THREE.OBJLoader();
+	loader.setPath( 'models/frames/' );
+	loader.load( 'frame.obj', ( object ) => {
+
+		object.traverse((obj) => { 
+			
+			obj.scale.set(0.5,0.5,0.5)
+			obj.material  = materialGold
+		})
+
+		object.castShadow
+
+		object.position.set(.125,0,0)
+
+		house.add( object );
 
 	} );
 
