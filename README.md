@@ -1,5 +1,5 @@
 # Tinder VR
-There is a white room. And it's raining golden framed matches.
+There is a white room. And it's raining golden-framed matches.
 
 # Research
 
