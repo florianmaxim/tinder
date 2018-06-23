@@ -1,6 +1,7 @@
 /** 
  * This represents a profile as a framed painting.
 */
+import * as config from '../config.json'
 
 import * as THREE from 'three';
 
@@ -39,10 +40,24 @@ export default class ComponentPicture {
             roughness: 0.7,
             metalness: 0.0,
             transparent: true,
-            opacity: 1,
-            wireframe: props.container!==undefined?props.container:true
+            opacity: props.containerOpacity!==undefined?props.containerOpacity:0,
+            wireframe: props.containerWireframe!==undefined?props.containerWireframe:true
         });
         this.meshContainer = new THREE.Mesh( geometry, material );
+
+        //Apply position if given
+        this.meshContainer.position.set(
+            props.position.x,
+            props.position.y,
+            props.position.z      
+        )
+
+        //Apply rotation if given
+        this.meshContainer.rotation.set(
+            props.rotation.x,
+            props.rotation.y,
+            props.rotation.z      
+        )
 
         //Init FrameMesh
 
@@ -53,11 +68,12 @@ export default class ComponentPicture {
             
             ( object ) => {
 
-            //Load texture
-		    new THREE.TextureLoader().load(
+            const textureLoader = new THREE.TextureLoader()
+            textureLoader.crossOrigin = "Anonymous"
+            textureLoader.load(
 
                 props.photo,
-                
+
                 ( texture ) => {
 				
 				    object.traverse((obj) => { 
@@ -69,20 +85,34 @@ export default class ComponentPicture {
                             obj.material.transparent = true
                             obj.material.opacity = 0
 
-                            texture.wrapS = THREE.RepeatWrapping;
-                            texture.wrapT = THREE.RepeatWrapping;
-
-                            let geo  = new THREE.PlaneGeometry(1,1.7)
-                            let mat  = new THREE.MeshBasicMaterial()
-                            let mes  = new THREE.Mesh( geo, mat )
-                                //mes.material.side = THREE.DoubleSide
-                                mes.material.map = texture
+                            //Canvas
+                            var geo  = new THREE.PlaneGeometry(1.25,1.7)
+                            //var mat  = materialGold
+                            var mat  = new THREE.MeshBasicMaterial({color:0xffffff})
+                            var mes  = new THREE.Mesh( geo, mat )
+                                mes.material.side = THREE.DoubleSide
                                 mes.scale.set(1.1,1.1,1.1)
-                                mes.position.set(0,0.001,0)
+                                mes.position.set(0,0.006,0)
 
                                 mes.rotation.x = - Math.PI / 2;
 
-                            object.add( mes )
+                            if(config.picture.frame)    
+                            this.meshContainer.add( mes )
+
+                            //Picture
+                            texture.wrapS = THREE.RepeatWrapping;
+                            texture.wrapT = THREE.RepeatWrapping;
+
+                            var geo  = new THREE.PlaneGeometry(1,1)
+                            var mat  = new THREE.MeshBasicMaterial()
+                            var mes  = new THREE.Mesh( geo, mat )
+                                mes.material.side = THREE.DoubleSide
+                                mes.material.map = texture
+                                mes.scale.set(0.85, 0.85, 0.85)
+                                mes.position.set(0,0.007,0)
+                                mes.rotation.x = - Math.PI / 2;
+
+                            this.meshContainer.add( mes )
                             
                         }else{
                             obj.material  = materialGold
@@ -90,6 +120,7 @@ export default class ComponentPicture {
                     })
             
                     //Add FrameMesh to container
+                    if(config.picture.frame)    
                     this.meshContainer.add( object );
 
                 },

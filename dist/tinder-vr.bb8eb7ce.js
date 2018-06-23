@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({7:[function(require,module,exports) {
+})({5:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],6:[function(require,module,exports) {
+},{}],4:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53773,7 +53773,18 @@ exports.JOINT_PRISMATIC = JOINT_PRISMATIC;
 exports.AABB_PROX = AABB_PROX;
 exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
-},{}],4:[function(require,module,exports) {
+},{}],11:[function(require,module,exports) {
+module.exports = {
+    "API" : {
+        "BASE_URL" : "http://192.168.178.126:8888",
+        "TOKEN" : "87550832-9636-4f33-ad86-a68b6b92d0be"
+    },
+
+    "picture" : {
+        "frame" : true
+    }
+};
+},{}],3:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53781,6 +53792,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _config = require('../config.json');
+
+var config = _interopRequireWildcard(_config);
 
 var _three = require('three');
 
@@ -53791,6 +53806,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /** 
                                                                                                                                                            * This represents a profile as a framed painting.
                                                                                                                                                           */
+
 
 var materialGold = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
@@ -53829,18 +53845,25 @@ var ComponentPicture = function () {
                 roughness: 0.7,
                 metalness: 0.0,
                 transparent: true,
-                opacity: 1,
-                wireframe: props.container !== undefined ? props.container : true
+                opacity: props.containerOpacity !== undefined ? props.containerOpacity : 0,
+                wireframe: props.containerWireframe !== undefined ? props.containerWireframe : true
             });
             this.meshContainer = new THREE.Mesh(geometry, material);
+
+            //Apply position if given
+            this.meshContainer.position.set(props.position.x, props.position.y, props.position.z);
+
+            //Apply rotation if given
+            this.meshContainer.rotation.set(props.rotation.x, props.rotation.y, props.rotation.z);
 
             //Init FrameMesh
 
             //Load model
             new THREE.OBJLoader().load('models/frames/frame.obj', function (object) {
 
-                //Load texture
-                new THREE.TextureLoader().load(props.photo, function (texture) {
+                var textureLoader = new THREE.TextureLoader();
+                textureLoader.crossOrigin = "Anonymous";
+                textureLoader.load(props.photo, function (texture) {
 
                     object.traverse(function (obj) {
 
@@ -53851,27 +53874,40 @@ var ComponentPicture = function () {
                             obj.material.transparent = true;
                             obj.material.opacity = 0;
 
-                            texture.wrapS = THREE.RepeatWrapping;
-                            texture.wrapT = THREE.RepeatWrapping;
-
-                            var geo = new THREE.PlaneGeometry(1, 1.7);
-                            var mat = new THREE.MeshBasicMaterial();
+                            //Canvas
+                            var geo = new THREE.PlaneGeometry(1.25, 1.7);
+                            //var mat  = materialGold
+                            var mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
                             var mes = new THREE.Mesh(geo, mat);
-                            //mes.material.side = THREE.DoubleSide
-                            mes.material.map = texture;
+                            mes.material.side = THREE.DoubleSide;
                             mes.scale.set(1.1, 1.1, 1.1);
-                            mes.position.set(0, 0.001, 0);
+                            mes.position.set(0, 0.006, 0);
 
                             mes.rotation.x = -Math.PI / 2;
 
-                            object.add(mes);
+                            if (config.picture.frame) _this.meshContainer.add(mes);
+
+                            //Picture
+                            texture.wrapS = THREE.RepeatWrapping;
+                            texture.wrapT = THREE.RepeatWrapping;
+
+                            var geo = new THREE.PlaneGeometry(1, 1);
+                            var mat = new THREE.MeshBasicMaterial();
+                            var mes = new THREE.Mesh(geo, mat);
+                            mes.material.side = THREE.DoubleSide;
+                            mes.material.map = texture;
+                            mes.scale.set(0.85, 0.85, 0.85);
+                            mes.position.set(0, 0.007, 0);
+                            mes.rotation.x = -Math.PI / 2;
+
+                            _this.meshContainer.add(mes);
                         } else {
                             obj.material = materialGold;
                         }
                     });
 
                     //Add FrameMesh to container
-                    _this.meshContainer.add(object);
+                    if (config.picture.frame) _this.meshContainer.add(object);
                 },
 
                 // onProgress callback currently not supported
@@ -53894,7 +53930,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"three":7}],2:[function(require,module,exports) {
+},{"../config.json":11,"three":5}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -53905,6 +53941,10 @@ var _oimo = require('oimo');
 
 var OIMO = _interopRequireWildcard(_oimo);
 
+var _config = require('./config.json');
+
+var config = _interopRequireWildcard(_config);
+
 var _ComponentPicture = require('./components/ComponentPicture');
 
 var _ComponentPicture2 = _interopRequireDefault(_ComponentPicture);
@@ -53912,6 +53952,10 @@ var _ComponentPicture2 = _interopRequireDefault(_ComponentPicture);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function randomIntFromInterval(min, max) {
+			return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 /**
  * @author mrdoob / http://mrdoob.com
@@ -54953,6 +54997,48 @@ var world = void 0;
 init();
 animate();
 
+function fetchRecommendations() {
+
+			console.log('fetch recs');
+
+			fetch(config.API.BASE_URL + '/recs/' + config.API.TOKEN).then(function (response) {
+						return response.json();
+			}).then(function (response) {
+
+						response.results.forEach(function (element) {
+
+									var id = element._id;
+									var photoId = element.photos[0].id;
+
+									var dimensions = '640x640';
+									var fileType = 'jpg';
+
+									var url = config.API.BASE_URL + '/photo/' + id + '/' + dimensions + '_' + photoId + '.' + fileType;
+
+									//Add Picture
+									pictures.add(new _ComponentPicture2.default({
+
+												position: {
+															x: randomIntFromInterval(-5, 5),
+															y: randomIntFromInterval(0, 5),
+															z: randomIntFromInterval(-5, 5)
+												},
+
+												rotation: {
+															x: Math.random() * 2 * Math.PI,
+															y: Math.random() * 2 * Math.PI,
+															z: Math.random() * 2 * Math.PI
+												},
+
+												photo: url,
+												//photo: 'models/frames/me.jpg',
+												containerWireframe: false,
+												containerOpacity: 0
+									}));
+						});
+			});
+}
+
 function init() {
 
 			//Physics
@@ -55055,8 +55141,8 @@ function init() {
 
 			controller2 = new THREE.ViveController(1);
 			controller2.standingMatrix = renderer.vr.getStandingMatrix();
-			controller2.addEventListener('triggerdown', onTriggerDown);
-			controller2.addEventListener('triggerup', onTriggerUp);
+			controller2.addEventListener('triggerdown', onTriggerDown2);
+			controller2.addEventListener('triggerup', onTriggerUp2);
 			scene.add(controller2);
 
 			var loader = new THREE.OBJLoader();
@@ -55090,14 +55176,6 @@ function init() {
 			//
 
 			window.addEventListener('resize', onWindowResize, false);
-
-			//Add Picture
-			pictures.add(new _ComponentPicture2.default({
-						//photo: 'https://images-ssl.gotinder.com/5830d01510d45e4372e20070/640x640_4a818366-bb30-42d0-9cbe-aaaca58202af.jpg'
-						photo: 'models/frames/me.jpg',
-						container: true
-						//photo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAAM1BMVEUKME7///+El6bw8vQZPVlHZHpmfpHCy9Ojsbzg5ekpSmTR2N44V29XcYayvsd2i5yTpLFbvRYnAAAJcklEQVR4nO2d17arOgxFs+kkofz/154Qmg0uKsuQccddT/vhnOCJLclFMo+//4gedzcApf9B4srrusk+GsqPpj+ypq7zVE9LAdLWWVU+Hx69y2FMwAMGyfusLHwIpooyw9IAQfK+8naDp3OGHvZ0FMhrfPMgVnVjC2kABOQ1MLvi0DEIFj1ILu0LU2WjNRgtSF3pKb4qqtd9IHmjGlJHlc09IHlGcrQcPeUjTAySAGNSkQlRhCCJMGaUC0HSYUx6SmxFAtJDTdylsr4ApC1TY0yquKbCBkk7qnYVzPHFBHkBojhVJWviwgPJrsP4qBgTgbQXdsesjm4pDJDmIuswVZDdFx0ENTtkihoeqSDXD6tVxOFFBHndMKxWvUnzexpIcx/Gg2goJJDhVo6PCMGRAnKTmZuKm3wcJO/upphUqUHy29yVrRhJDORXOKIkEZDf4YiRhEF+iSNCEgb5KY4wSRDkB/yurUEG8nMcocgYABnvbrVL3nMIP0h/d5udKnwzSC/InfPdkJ6eWb0PJE++dyVVyQP5iQmWW27X5QG5druEKafBu0Hqu9saVOHa8HKC/K6BzHKZiRMEZCDF0Nd1/ZfXI/fcOibHOssFgokg9uFA20BhztHEAZIjIohrD/o1wljeFBDEwBo8YUt5Ir/rNLjOIACPFdy/AbEcPdcJBOCxytjeYAM4Kzp6rhOIPhRGNzwmFP3rOoTFI0irtnQKx6fj1Zt+h9njEUS9mKJxfFRrX5lt7wcQtaWTOfTHeIXVJQcQrRW+OYex2j0a66XZINoO8a7fPH2iHF2mC7ZBtB3Czb5QvjizSx7A3308mRzqAwujSywQbYfwc0iU8zqjS0yQ6ztEHX9332KCaGNIYB/Qq1z3yN0oDZBWyeFYJBCkm2sXLhDtpKFwNDMu5TnrZpYGiHbK4Nlwikg5DrYV1g6iPoJmzE5MKd/fOp53EPUaQZaLqH3u+vo2ELWp3wSyWuYGoj9EEIJoV3L9AUS/ZLsJpLNBXmqOu0CW6P5A/dx9IL0FAji/FYKot9EqE0Tvs6QBUe/2CxMEkZAlBNGPhdoAQWyTSmbxUwvUygwQyMmniAPgLt87CODXHuftWJIQgzrfQDC5AfwSgz9MmmG/gWCOqDgZ4JsQeTvZBoJJDhAFEsSDyxUEEUUekk0UEMhjBcEcGsoWVpBU3NcCgkkPkJWrKbdRZvULCMTWhYEdMrayBQRyqHcnSLmAIH7LcWJ8Hch7BsHEdWFpJsZjziCgFBpZ9TPm4e0XBJTTJKt9xjy8RoLI4gimPLP5goCSgWTrEcyzsy8IqmZVMo0H5bJiQToBCOjZ5RcElhjLN3dU7uQMAvoxwQkJZKI1CQzCthJYEigahHuDDi4rFwzCPQ7F1fiDQZgTR5iJwEGYRgIsiECD8BwwMAEfDcIaW8CRBQdhjS1kJQEchDEFhiRKr4KDFPS9FGQNVwEHoW83QjsEHdkfnuIOl6C1NjMItiaCaCWgbdpFJXQ9soh2uoB9aJcCxFdgZwlcrTmvENGlrITBBdpK25Qhd1F2RScq8CKu/gsCL8qN5THjy+Rr5E6joYgPxpdl518QrCf8Kpgjn6C8HLkbb+vt7ZM8wdVvy258khsRfHaS5DalDnlidZT7Erk+SXV5Bj1D3LS29XyhVJuoKHs9Q8S6reK11oUc7vPcr9uswP3SLiDINefXOF5rwCuGzVT6zVkVPfh2wWmHcz4wAwba2cgN1/Tsvleu7//i69CgVyt1GwjOs2+XK3rtbl151Tg3vOeioG40Mz2V+6pQ4xbJHOZj6g0EMxk93tV7fuedvVZpQSPhbwNBGInrymGrwNh1GXmL8F+lAaJ+NU/fzcmvJqvKj7177+1v1GY/GiBKI1Fdy/2XK6upXwaIJpI8B/399W0mH9zzafKaeCF9J0WF+jyCuFusTGzZKhFH8dVLZql2brxgcdVBKb7KG/7UZTmB3XJ6uL/QYT5ScRI74FcHEJ7feopyfGkaeaGlPoCw/BbjZmSBWIvINQNmTxdjWJqwUI8sztR4nYPuIPSTSUnOCZOE3ierqRoJfNSQxDjLEYs8i91eqgFCDSWiFHiuqAN9CwEGCPEISVjvwhS7Mfx6dtX8kC5aqvneGBOEFN2v6RBiYwr3DQOkLhEW6fHFbIwFQnkLiWYmZxE220z/aedPx99C+hiyKR4OzNFhg8S75CJTnxQ1dyugHTLaY10iu9dBpmhQtMz1ABLrkgtHVnRsPUO3OcU25i8cWdGxZbflCBKJqBdMs3aF/dYhNexU9RFcYEmLXYQKghyWdufyldBSU3KpjkKhZclxTXQGCTkL/HZDUIH5+Gkt4SgoCtj7pSYSNJLTK3VVRnmXZxebSMBIzmHABeIdXBebiN9eHYtUZ62ab3BdGkUm+SKJw1bdRXeewaX7qqdAnljg2sVxg3guAk3baofcg9yZ2eZpnHNvSFrEqhB9YPjesmt0pt6Xc8hl7W5L9Q4Xx09ctsrd5VhWeF6nF8SRrZdw49qns//0xTK/AZ8vGr3caTliuzeFNeCJTgafpKlhHd2WP1sy1LqDF798gjKJPLqDr9keoTd43+NyNzC1CI8Xy2lcPtOaVBI5IiAWyQ3e125AcKoXs2Djhy5eVc3KiBxREIPkhjBiLhIjU++4T91IbggjRiCJLSEIwWGddkEaxlVN5KCArPHk8mXVpHk8FHH7JL3n5dPA7C90q7XkeFJucacNmGXeRfswLE71HA79efaGiCN/Ofjmfmtcp8X10tIsqCacV5xfRWjNUiXGYbovWgyFYHcQLak15K9oM5zqmgaeKsHJetbSHfSPzXOiw/rxE9YH4CXaUpsZ0ztemFurP95Jpyvrd29YTpIZr7cEJHqfc7Wl0PFm2+yJR70udaokKFtGPTdm8WdQe24+HmVLlueboWQquBcYYVH2vEzfh8kCks1p90eWsLCyZ8qK7E86Oe+3XYFnBuiWdth20UqZR5SvMoyPg3WNauJipi0LMTQgVq5xUUlZcrPsopPHJ926z8pm7xyFLrH/PxpHSoXKdWgXsLn1scZn1ZDd/2vszN3lt254qkE+qu3yoqLM+ghN3Qz2qcVzUC/ZMFsK/alU6l0OWV/bQz6v6yYbyuN5BaZ4A7Y30vs/PPksS2+qzlvfF7OQmzzcL7W+xa7OIfRuVdtn/tdvdFLnL4OTKcm2W16PmWc4FWWXNSlWM2n3D+uPxuyrcfo74aP+Ac30a82+oLmfAAAAAElFTkSuQmCC'
-			}));
 }
 
 function onWindowResize() {
@@ -55144,6 +55222,12 @@ function onTriggerUp(event) {
 
 						controller.userData.selected = undefined;
 			}
+}
+
+function onTriggerDown2() {}
+
+function onTriggerUp2() {
+			fetchRecommendations();
 }
 
 function getIntersections(controller) {
@@ -55218,7 +55302,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":7,"oimo":6,"./components/ComponentPicture":4}],14:[function(require,module,exports) {
+},{"three":5,"oimo":4,"./config.json":11,"./components/ComponentPicture":3}],13:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55247,7 +55331,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '61608' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62590' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55388,5 +55472,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[14,2], null)
+},{}]},{},[13,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map
