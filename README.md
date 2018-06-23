@@ -8,7 +8,9 @@
 <img src="research/screen-1.jpg"/>
 </p>
 
-# Research
+## <p align="center">Usage</p>
+
+## <p align="center">Research</p>
 
 <img src="research/research-frame-1.jpg"/>
 <img src="research/research-frame-2.jpg"/>
