@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/florianmaxim/boilerplate-three#readme",
   "dependencies": {
+    "oimo": "^1.0.9",
     "three": "^0.93.0"
   },
   "devDependencies": {

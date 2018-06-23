@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as OIMO from 'oimo';
 
 /**
  * @author mrdoob / http://mrdoob.com
@@ -1164,12 +1165,29 @@ var raycaster, intersected = [];
 var tempMatrix = new THREE.Matrix4();
 
 var group;
+
+let bodies = [];
+let meshes = [];
+
 let house;
+
+let world;
 
 init();
 animate();
 
 function init() {
+
+	//Physics
+	world = new OIMO.World({ 
+		timestep: 1/60, 
+		iterations: 8, 
+		broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
+		worldscale: 1, // scale full world 
+		random: true,  // randomize sample
+		info: false,   // calculate statistic or not
+		gravity: [0,-1.8,0] 
+	});
 
 	document.body.style.margin = '0';
 
@@ -1196,7 +1214,7 @@ function init() {
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
-	var geometry = new THREE.PlaneBufferGeometry( 4, 4 );
+	var geometry = new THREE.PlaneBufferGeometry( 10, 10 );
 	var material = new THREE.MeshStandardMaterial( {
 		//color: 0x0000ff,		
 		color: 0xeeeeee,
@@ -1207,6 +1225,19 @@ function init() {
 	floor.rotation.x = - Math.PI / 2;
 	floor.receiveShadow = true;
 	scene.add( floor );
+
+	var body = world.add({ 
+		type:'box', // type of shape : sphere, box, cylinder 
+		size:[10,0.00001,10], // size of shape
+		pos: [0,0,0], // start position in degree
+		rot: [0,0,0], // start rotation in degree
+		move:false, // dynamic or statique
+		density: 1,
+		friction: 0.2,
+		restitution: 0.2,
+		belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+		collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+	});
 
 	scene.add( new THREE.AmbientLight( 0xffffff) );
 
@@ -1239,6 +1270,8 @@ function init() {
 
 	//group.add( house );
 
+
+
 	//
 
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -1248,6 +1281,7 @@ function init() {
 	renderer.gammaOutput = true;
 	renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
+	
 	container.appendChild( renderer.domElement );
 
 	document.body.appendChild( WEBVR.createButton( renderer ) );
@@ -1350,19 +1384,39 @@ function init() {
 				{
 					return Math.floor(Math.random()*(max-min+1)+min);
 				}
-				const amount = 25
+				const amount = 100
 
 				for(let i = 0; i<=amount; i++){
+
 					const clone = house.clone();
+
 					const scale = Math.random();
-						  clone.scale.set(scale,scale,scale)
-						  clone.position.set(randomIntFromInterval(-5,5), randomIntFromInterval(-5,5), randomIntFromInterval(-5,5))
-			
-						  clone.rotation.x = Math.random() * 2 * Math.PI;
-						  clone.rotation.y = Math.random() * 2 * Math.PI;
-						  clone.rotation.z = Math.random() * 2 * Math.PI;
+					const position = {x:randomIntFromInterval(-5,5),y:randomIntFromInterval(0,5),z:randomIntFromInterval(-5,5)}
+					const rotation = {x:Math.random() * 2 * Math.PI,y:Math.random() * 2 * Math.PI,z:Math.random() * 2 * Math.PI}
+
+					clone.scale.set(scale,scale,scale)
+					clone.position.set(position.x,position.y,position.z)
+					clone.rotation.set(rotation.x, rotation.y, rotation.z)
 
 					group.add(clone)
+
+					meshes.push(clone)
+
+					var body = world.add({ 
+						type:'box', // type of shape : sphere, box, cylinder 
+						size:[scale,scale,scale], // size of shape
+						pos: [position.x, position.y, position.z], // start position in degree
+						rot: [rotation.x, rotation.y, rotation.z], // start rotation in degree
+						move:true, // dynamic or statique
+						density: 1,
+						friction: 0.2,
+						restitution: 0.2,
+						belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+						collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+					});
+
+					bodies.push(body)
+					
 				}
 			},
 
@@ -1512,6 +1566,17 @@ function animate() {
 }
 
 function render() {
+
+	// update world
+	world.step();
+
+	/*meshes.forEach((mesh, index) => {
+
+		mesh.position.copy( bodies[ index ].getPosition() );
+		mesh.quaternion.copy( bodies[ index ].getQuaternion() );
+
+	})*/
+	
 
 	controller1.update();
 	controller2.update();
