@@ -1201,7 +1201,7 @@ function fetchRecommendations() {
 			const dimensions = `640x640`;
 			const fileType = `jpg`;
 
-			const url = `${config.API.BASE_URL}/photo/${id}/${dimensions}_${photoId}.${fileType}`
+			const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
 
 			//Add Picture
 			pictures.add(new Picture({
@@ -1365,6 +1365,8 @@ function init() {
 	raycaster = new THREE.Raycaster();
 
 	//
+
+	fetchRecommendations();
 
 	window.addEventListener( 'resize', onWindowResize, false );
 }

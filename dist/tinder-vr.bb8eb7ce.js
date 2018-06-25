@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({5:[function(require,module,exports) {
+})({7:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],4:[function(require,module,exports) {
+},{}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53773,18 +53773,18 @@ exports.JOINT_PRISMATIC = JOINT_PRISMATIC;
 exports.AABB_PROX = AABB_PROX;
 exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
-},{}],11:[function(require,module,exports) {
+},{}],4:[function(require,module,exports) {
 module.exports = {
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "87550832-9636-4f33-ad86-a68b6b92d0be"
+        "TOKEN" : "6f9fe72b-0cc1-4646-83d6-d4146d1cdb84"
     },
 
     "picture" : {
-        "frame" : true
+        "frame" : false
     }
 };
-},{}],3:[function(require,module,exports) {
+},{}],5:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53807,7 +53807,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                                                                                                                                                            * This represents a profile as a framed painting.
                                                                                                                                                           */
 
-
 var materialGold = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
     color: 0x564100,
@@ -53819,6 +53818,72 @@ var materialGold = new THREE.MeshPhongMaterial({
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
+
+function remapUVs(geo) {
+
+    geo.computeBoundingBox();
+    var min = geo.boundingBox.min;
+    var max = geo.boundingBox.max;
+    var offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+    var size = new THREE.Vector2(max.x - min.x, max.y - min.y);
+
+    // Remove the old UVs that were incorrect 
+    geo.faceVertexUvs[0] = [];
+
+    geo.faces.forEach(function (face) {
+
+        var v1 = geo.vertices[face.a];
+        var v2 = geo.vertices[face.b];
+        var v3 = geo.vertices[face.c];
+
+        // Push on a new UV based on its position inside the shape
+        geo.faceVertexUvs[0].push[(new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y))];
+    });
+
+    geo.uvsNeedUpdate = true;
+}
+
+function makeRoundedCornerPlane() {
+    var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 2;
+    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+    var smooth = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 16;
+
+
+    var geometry = new THREE.Geometry();
+
+    offset = (offset - radius) / 2;
+    radius = radius / 4;
+    smooth = 16;
+
+    var cornerA = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 1, Math.PI * 2 / 4);
+    var matrixA = new THREE.Matrix4();
+    matrixA.makeTranslation(0 - offset, 0 + offset, 0);
+    geometry.merge(cornerA, matrixA);
+
+    var cornerB = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 0, Math.PI * 2 / 4);
+    var matrixB = new THREE.Matrix4();
+    matrixB.makeTranslation(0 + offset, 0 + offset, 0);
+    geometry.merge(cornerB, matrixB);
+
+    var cornerC = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 3, Math.PI * 2 / 4);
+    var matrixC = new THREE.Matrix4();
+    matrixC.makeTranslation(0 + offset, 0 - offset, 0);
+    geometry.merge(cornerC, matrixC);
+
+    var cornerD = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 2, Math.PI * 2 / 4);
+    var matrixD = new THREE.Matrix4();
+    matrixD.makeTranslation(0 - offset, 0 - offset, 0);
+    geometry.merge(cornerD, matrixD);
+
+    var planeA = new THREE.PlaneGeometry((offset + radius) * 2, offset * 2);
+    geometry.merge(planeA);
+
+    var planeB = new THREE.PlaneGeometry(offset * 2, (offset + radius) * 2);
+    geometry.merge(planeB);
+    //remapUVs(geometry)
+
+    return geometry;
+}
 
 var ComponentPicture = function () {
     function ComponentPicture(props) {
@@ -53879,6 +53944,9 @@ var ComponentPicture = function () {
                             //var mat  = materialGold
                             var mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
                             var mes = new THREE.Mesh(geo, mat);
+
+                            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
                             mes.material.side = THREE.DoubleSide;
                             mes.scale.set(1.1, 1.1, 1.1);
                             mes.position.set(0, 0.006, 0);
@@ -53891,14 +53959,16 @@ var ComponentPicture = function () {
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
 
-                            var geo = new THREE.PlaneGeometry(1, 1);
+                            var geo = makeRoundedCornerPlane(2, 0.5);
+                            //var geo  = new THREE.PlaneGeometry(0.7,1)
                             var mat = new THREE.MeshBasicMaterial();
                             var mes = new THREE.Mesh(geo, mat);
                             mes.material.side = THREE.DoubleSide;
+                            //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
                             mes.material.map = texture;
-                            mes.scale.set(0.85, 0.85, 0.85);
-                            mes.position.set(0, 0.007, 0);
-                            mes.rotation.x = -Math.PI / 2;
+                            //mes.scale.set(1.5, 1.5, 1.5)
+                            //mes.position.set(0,0.007,0)
+                            //mes.rotation.x = - Math.PI / 2;
 
                             _this.meshContainer.add(mes);
                         } else {
@@ -53930,7 +54000,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config.json":11,"three":5}],2:[function(require,module,exports) {
+},{"../config.json":4,"three":7}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -55013,7 +55083,7 @@ function fetchRecommendations() {
 									var dimensions = '640x640';
 									var fileType = 'jpg';
 
-									var url = config.API.BASE_URL + '/photo/' + id + '/' + dimensions + '_' + photoId + '.' + fileType;
+									var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
 
 									//Add Picture
 									pictures.add(new _ComponentPicture2.default({
@@ -55175,6 +55245,8 @@ function init() {
 
 			//
 
+			fetchRecommendations();
+
 			window.addEventListener('resize', onWindowResize, false);
 }
 
@@ -55302,7 +55374,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":5,"oimo":4,"./config.json":11,"./components/ComponentPicture":3}],13:[function(require,module,exports) {
+},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],9:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55331,7 +55403,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62590' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '49904' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55472,5 +55544,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[13,2], null)
+},{}]},{},[9,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

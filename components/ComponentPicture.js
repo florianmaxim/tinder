@@ -1,6 +1,7 @@
 /** 
  * This represents a profile as a framed painting.
 */
+
 import * as config from '../config.json'
 
 import * as THREE from 'three';
@@ -16,6 +17,74 @@ const materialGold = new THREE.MeshPhongMaterial( {
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
+
+function remapUVs(geo){
+
+	geo.computeBoundingBox()
+	const min = geo.boundingBox.min
+	const max = geo.boundingBox.max
+	const offset = new THREE.Vector2(0 - min.x, 0 - min.y)
+	const size = new THREE.Vector2(max.x - min.x, max.y - min.y)
+    
+    // Remove the old UVs that were incorrect 
+    geo.faceVertexUvs[0] = []
+
+	geo.faces.forEach(face => {
+        
+        const v1 = geo.vertices[face.a]
+		const v2 = geo.vertices[face.b]
+        const v3 = geo.vertices[face.c]
+        
+        // Push on a new UV based on its position inside the shape
+        geo.faceVertexUvs[0].push [
+            new THREE.Vector2((v1.x + offset.x)/size.x, (v1.y + offset.y)/size.y),
+            new THREE.Vector2((v2.x + offset.x)/size.x, (v2.y + offset.y)/size.y),
+            new THREE.Vector2((v3.x + offset.x)/size.x, (v3.y + offset.y)/size.y)
+        ]
+
+    });
+
+    geo.uvsNeedUpdate = true
+}   
+
+function makeRoundedCornerPlane(offset=2, radius=2, smooth=16){
+
+	const geometry = new THREE.Geometry()
+
+	offset = (offset - radius) / 2
+	radius = radius / 4
+	smooth = 16
+
+	const cornerA = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 1, Math.PI * 2 / 4);
+	const matrixA = new THREE.Matrix4();
+	matrixA.makeTranslation(0-offset, 0+offset, 0)
+	geometry.merge(cornerA, matrixA)
+
+	const cornerB = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 0, Math.PI * 2 / 4);
+	const matrixB = new THREE.Matrix4();
+	matrixB.makeTranslation(0+offset, 0+offset, 0)
+    geometry.merge(cornerB, matrixB)
+
+	const cornerC = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 3, Math.PI * 2 / 4);
+	const matrixC = new THREE.Matrix4();
+	matrixC.makeTranslation(0+offset, 0-offset, 0)
+	geometry.merge(cornerC, matrixC)
+
+	const cornerD = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 2, Math.PI * 2 / 4);
+	const matrixD = new THREE.Matrix4();
+	matrixD.makeTranslation(0-offset, 0-offset, 0)
+	geometry.merge(cornerD, matrixD)
+
+	const planeA = new THREE.PlaneGeometry((offset+radius) * 2, offset * 2)
+	geometry.merge(planeA)
+
+	const planeB = new THREE.PlaneGeometry(offset * 2, (offset+radius) * 2)
+	geometry.merge(planeB)
+    //remapUVs(geometry)
+    
+    return geometry
+}
+
 
 export default class ComponentPicture {
 
@@ -90,6 +159,9 @@ export default class ComponentPicture {
                             //var mat  = materialGold
                             var mat  = new THREE.MeshBasicMaterial({color:0xffffff})
                             var mes  = new THREE.Mesh( geo, mat )
+
+                                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                                
                                 mes.material.side = THREE.DoubleSide
                                 mes.scale.set(1.1,1.1,1.1)
                                 mes.position.set(0,0.006,0)
@@ -103,14 +175,16 @@ export default class ComponentPicture {
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
 
-                            var geo  = new THREE.PlaneGeometry(1,1)
+                            var geo  = makeRoundedCornerPlane(2, 0.5)
+                            //var geo  = new THREE.PlaneGeometry(0.7,1)
                             var mat  = new THREE.MeshBasicMaterial()
                             var mes  = new THREE.Mesh( geo, mat )
                                 mes.material.side = THREE.DoubleSide
+                                //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
                                 mes.material.map = texture
-                                mes.scale.set(0.85, 0.85, 0.85)
-                                mes.position.set(0,0.007,0)
-                                mes.rotation.x = - Math.PI / 2;
+                                //mes.scale.set(1.5, 1.5, 1.5)
+                                //mes.position.set(0,0.007,0)
+                                //mes.rotation.x = - Math.PI / 2;
 
                             this.meshContainer.add( mes )
                             
