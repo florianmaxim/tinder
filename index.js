@@ -1200,7 +1200,7 @@ function fetchRecommendations() {
 
 			const dimensions = `640x640`;
 
-			const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
+			const url = `${config.API.BASE_URL}/image/${id}/${dimensions}_${photoId}`
 
 			//Add Picture
 			pictures.add(new Picture({

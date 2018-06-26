@@ -181,6 +181,9 @@ export default class ComponentPicture {
                                 //mes.position.set(0,0.007,0)
                                 //mes.rotation.x = - Math.PI / 2;
 
+                                mes.castShadow = true
+
+
                             this.meshContainer.add( mes )
                             
                         }else{

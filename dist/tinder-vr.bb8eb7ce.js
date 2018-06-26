@@ -53970,6 +53970,8 @@ var ComponentPicture = function () {
                             //mes.position.set(0,0.007,0)
                             //mes.rotation.x = - Math.PI / 2;
 
+                            mes.castShadow = true;
+
                             _this.meshContainer.add(mes);
                         } else {
                             obj.material = materialGold;
@@ -55082,7 +55084,7 @@ function fetchRecommendations() {
 
 									var dimensions = '640x640';
 
-									var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
+									var url = config.API.BASE_URL + '/image/' + id + '/' + dimensions + '_' + photoId;
 
 									//Add Picture
 									pictures.add(new _ComponentPicture2.default({
