@@ -18,34 +18,29 @@ const materialGold = new THREE.MeshPhongMaterial( {
     reflectivity: .25
 });
 
-function remapUVs(geo){
+function remapUVs(geo) {
 
-	geo.computeBoundingBox()
-	const min = geo.boundingBox.min
-	const max = geo.boundingBox.max
-	const offset = new THREE.Vector2(0 - min.x, 0 - min.y)
-	const size = new THREE.Vector2(max.x - min.x, max.y - min.y)
-    
-    // Remove the old UVs that were incorrect 
-    geo.faceVertexUvs[0] = []
+    var face, i, j, len, max, min, offset, ref, size, v1, v2, v3;
+    geo.computeBoundingBox();
 
-	geo.faces.forEach(face => {
-        
-        const v1 = geo.vertices[face.a]
-		const v2 = geo.vertices[face.b]
-        const v3 = geo.vertices[face.c]
-        
-        // Push on a new UV based on its position inside the shape
-        geo.faceVertexUvs[0].push [
-            new THREE.Vector2((v1.x + offset.x)/size.x, (v1.y + offset.y)/size.y),
-            new THREE.Vector2((v2.x + offset.x)/size.x, (v2.y + offset.y)/size.y),
-            new THREE.Vector2((v3.x + offset.x)/size.x, (v3.y + offset.y)/size.y)
-        ]
+    min = geo.boundingBox.min;
+    max = geo.boundingBox.max;
 
-    });
+    offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+    size = new THREE.Vector2(max.x - min.x, max.y - min.y);
+    geo.faceVertexUvs[0] = [];
 
-    geo.uvsNeedUpdate = true
-}   
+    ref = geo.faces;
+    for (i = j = 0, len = ref.length; j < len; i = ++j) {
+      face = ref[i];
+      v1 = geo.vertices[face.a];
+      v2 = geo.vertices[face.b];
+      v3 = geo.vertices[face.c];
+      geo.faceVertexUvs[0].push([new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y)]);
+    }
+
+    return geo.uvsNeedUpdate = true;
+  };
 
 function makeRoundedCornerPlane(offset=2, radius=2, smooth=16){
 
@@ -76,11 +71,14 @@ function makeRoundedCornerPlane(offset=2, radius=2, smooth=16){
 	geometry.merge(cornerD, matrixD)
 
 	const planeA = new THREE.PlaneGeometry((offset+radius) * 2, offset * 2)
-	geometry.merge(planeA)
+    geometry.merge(planeA)
 
 	const planeB = new THREE.PlaneGeometry(offset * 2, (offset+radius) * 2)
-	geometry.merge(planeB)
-    //remapUVs(geometry)
+    geometry.merge(planeB)
+    
+    //geometry.scale(1,1.7,1)
+    
+    remapUVs(geometry)
     
     return geometry
 }
@@ -159,9 +157,6 @@ export default class ComponentPicture {
                             //var mat  = materialGold
                             var mat  = new THREE.MeshBasicMaterial({color:0xffffff})
                             var mes  = new THREE.Mesh( geo, mat )
-
-                                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                                
                                 mes.material.side = THREE.DoubleSide
                                 mes.scale.set(1.1,1.1,1.1)
                                 mes.position.set(0,0.006,0)

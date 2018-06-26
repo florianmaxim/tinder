@@ -1199,7 +1199,6 @@ function fetchRecommendations() {
 			const photoId = element.photos[0].id
 
 			const dimensions = `640x640`;
-			const fileType = `jpg`;
 
 			const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
 

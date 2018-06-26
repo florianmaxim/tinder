@@ -53821,27 +53821,27 @@ var materialGold = new THREE.MeshPhongMaterial({
 
 function remapUVs(geo) {
 
+    var face, i, j, len, max, min, offset, ref, size, v1, v2, v3;
     geo.computeBoundingBox();
-    var min = geo.boundingBox.min;
-    var max = geo.boundingBox.max;
-    var offset = new THREE.Vector2(0 - min.x, 0 - min.y);
-    var size = new THREE.Vector2(max.x - min.x, max.y - min.y);
 
-    // Remove the old UVs that were incorrect 
+    min = geo.boundingBox.min;
+    max = geo.boundingBox.max;
+
+    offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+    size = new THREE.Vector2(max.x - min.x, max.y - min.y);
     geo.faceVertexUvs[0] = [];
 
-    geo.faces.forEach(function (face) {
+    ref = geo.faces;
+    for (i = j = 0, len = ref.length; j < len; i = ++j) {
+        face = ref[i];
+        v1 = geo.vertices[face.a];
+        v2 = geo.vertices[face.b];
+        v3 = geo.vertices[face.c];
+        geo.faceVertexUvs[0].push([new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y)]);
+    }
 
-        var v1 = geo.vertices[face.a];
-        var v2 = geo.vertices[face.b];
-        var v3 = geo.vertices[face.c];
-
-        // Push on a new UV based on its position inside the shape
-        geo.faceVertexUvs[0].push[(new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y))];
-    });
-
-    geo.uvsNeedUpdate = true;
-}
+    return geo.uvsNeedUpdate = true;
+};
 
 function makeRoundedCornerPlane() {
     var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 2;
@@ -53880,7 +53880,10 @@ function makeRoundedCornerPlane() {
 
     var planeB = new THREE.PlaneGeometry(offset * 2, (offset + radius) * 2);
     geometry.merge(planeB);
-    //remapUVs(geometry)
+
+    //geometry.scale(1,1.7,1)
+
+    remapUVs(geometry);
 
     return geometry;
 }
@@ -53944,9 +53947,6 @@ var ComponentPicture = function () {
                             //var mat  = materialGold
                             var mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
                             var mes = new THREE.Mesh(geo, mat);
-
-                            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
                             mes.material.side = THREE.DoubleSide;
                             mes.scale.set(1.1, 1.1, 1.1);
                             mes.position.set(0, 0.006, 0);
@@ -55081,7 +55081,6 @@ function fetchRecommendations() {
 									var photoId = element.photos[0].id;
 
 									var dimensions = '640x640';
-									var fileType = 'jpg';
 
 									var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
 
@@ -55374,7 +55373,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],9:[function(require,module,exports) {
+},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],17:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55544,5 +55543,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[9,2], null)
+},{}]},{},[17,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map
