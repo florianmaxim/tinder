@@ -17,10 +17,10 @@ const materialGold = new THREE.MeshPhongMaterial( {
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
-
 function remapUVs(geo) {
 
-    var face, i, j, len, max, min, offset, ref, size, v1, v2, v3;
+    let max, min, offset, size, v1, v2, v3;
+	
     geo.computeBoundingBox();
 
     min = geo.boundingBox.min;
@@ -28,60 +28,64 @@ function remapUVs(geo) {
 
     offset = new THREE.Vector2(0 - min.x, 0 - min.y);
     size = new THREE.Vector2(max.x - min.x, max.y - min.y);
+	
     geo.faceVertexUvs[0] = [];
 
-    ref = geo.faces;
-    for (i = j = 0, len = ref.length; j < len; i = ++j) {
-      face = ref[i];
+    geo.faces.forEach(face => {
+		
       v1 = geo.vertices[face.a];
       v2 = geo.vertices[face.b];
-      v3 = geo.vertices[face.c];
+	  v3 = geo.vertices[face.c];
+	  
       geo.faceVertexUvs[0].push([new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y)]);
-    }
+	
+	});
 
     return geo.uvsNeedUpdate = true;
   };
 
-function makeRoundedCornerPlane(offset=2, radius=2, smooth=16){
+function makeRoundedCornerPlane(width=1, height=1.7, radius=1, smooth=16){
 
 	const geometry = new THREE.Geometry()
 
-	offset = (offset - radius) / 2
-	radius = radius / 4
-	smooth = 16
+	const _width = width
+	const _height = height
+
+	const _radius = .125
+	const _smooth = 16
 
 	const cornerA = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 1, Math.PI * 2 / 4);
 	const matrixA = new THREE.Matrix4();
-	matrixA.makeTranslation(0-offset, 0+offset, 0)
+	matrixA.makeTranslation(-width/2, height/2, 0)
 	geometry.merge(cornerA, matrixA)
 
 	const cornerB = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 0, Math.PI * 2 / 4);
 	const matrixB = new THREE.Matrix4();
-	matrixB.makeTranslation(0+offset, 0+offset, 0)
-    geometry.merge(cornerB, matrixB)
+	matrixB.makeTranslation(width/2, height/2, 0)
+        geometry.merge(cornerB, matrixB)
 
-	const cornerC = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 3, Math.PI * 2 / 4);
+	const cornerC = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 2, Math.PI * 2 / 4);
 	const matrixC = new THREE.Matrix4();
-	matrixC.makeTranslation(0+offset, 0-offset, 0)
+	matrixC.makeTranslation(-width/2, -height/2, 0)
 	geometry.merge(cornerC, matrixC)
 
-	const cornerD = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 2, Math.PI * 2 / 4);
+	const cornerD = new THREE.CircleGeometry(radius, smooth, (Math.PI * 2 / 4) * 3, Math.PI * 2 / 4);
 	const matrixD = new THREE.Matrix4();
-	matrixD.makeTranslation(0-offset, 0-offset, 0)
+	matrixD.makeTranslation(width/2, -height/2, 0)
 	geometry.merge(cornerD, matrixD)
 
-	const planeA = new THREE.PlaneGeometry((offset+radius) * 2, offset * 2)
-    geometry.merge(planeA)
+	const planeHorizontal = new THREE.PlaneGeometry(width+radius*2, height)
+	geometry.merge(planeHorizontal)
 
-	const planeB = new THREE.PlaneGeometry(offset * 2, (offset+radius) * 2)
-    geometry.merge(planeB)
-    
-    //geometry.scale(1,1.7,1)
+	const planeVertical = new THREE.PlaneGeometry(width, height+radius*2)
+	geometry.merge(planeVertical)
     
     remapUVs(geometry)
     
     return geometry
 }
+
+let count = 0
 
 
 export default class ComponentPicture {
@@ -94,14 +98,22 @@ export default class ComponentPicture {
         this.meshFrame;
         this.meshPicture;
 
+
+        this.meshTexture;
+        this.meshTextures = [];
+        this.meshTexturesPointer = 0;
+
         return this.init(props)
 
     }
 
     init(props){
 
+        //Pass Images
+        this.meshTextures = props.images!==undefined?props.images:[]
+
         //Init ContainerMesh
-        const geometry = new THREE.BoxBufferGeometry(1.5,0.1,2.1)
+        const geometry = new THREE.BoxBufferGeometry(1,.1,1.7)
         const material = new THREE.MeshStandardMaterial({
             color: Math.random() * 0x0000ff,
             roughness: 0.7,
@@ -111,6 +123,7 @@ export default class ComponentPicture {
             wireframe: props.containerWireframe!==undefined?props.containerWireframe:true
         });
         this.meshContainer = new THREE.Mesh( geometry, material );
+        this.meshContainer.scale.set(1.125,1.125,1.125)
 
         //Apply position if given
         this.meshContainer.position.set(
@@ -139,7 +152,7 @@ export default class ComponentPicture {
             textureLoader.crossOrigin = "Anonymous"
             textureLoader.load(
 
-                props.photo,
+                this.meshTextures[this.meshTexturesPointer],
 
                 ( texture ) => {
 				
@@ -170,21 +183,24 @@ export default class ComponentPicture {
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
 
-                            var geo  = makeRoundedCornerPlane(2, 0.5)
+                            var geo  = makeRoundedCornerPlane(1, 1.7, 0.125)
                             //var geo  = new THREE.PlaneGeometry(0.7,1)
                             var mat  = new THREE.MeshBasicMaterial()
-                            var mes  = new THREE.Mesh( geo, mat )
-                                mes.material.side = THREE.DoubleSide
+                            
+                            this.meshPicture  = new THREE.Mesh( geo, mat )
+                            this.meshPicture.material.side = THREE.DoubleSide
                                 //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
-                                mes.material.map = texture
+                            
+                            this.meshTexture = texture
+                            
+                            this.meshPicture.material.map = this.meshTexture
                                 //mes.scale.set(1.5, 1.5, 1.5)
                                 //mes.position.set(0,0.007,0)
                                 //mes.rotation.x = - Math.PI / 2;
+                            this.meshPicture.rotation.x = - Math.PI / 2;
+                            this.meshPicture.castShadow = true
 
-                                mes.castShadow = true
-
-
-                            this.meshContainer.add( mes )
+                            this.meshContainer.add( this.meshPicture )
                             
                         }else{
                             obj.material  = materialGold
@@ -209,10 +225,37 @@ export default class ComponentPicture {
 
         } );
 
+        this.meshContainer.userData.count = count
+        count++
+
+        return this;
+    }
+
+    getMesh(){
         return this.meshContainer;
     }
 
-    setPicture(){
+    setTexture(){
+
+        this.meshTexturesPointer = this.meshTexturesPointer<this.meshTextures.length-1?this.meshTexturesPointer+1:0
+
+        const textureLoader = new THREE.TextureLoader()
+        textureLoader.crossOrigin = "Anonymous"
+
+        textureLoader.load(
+
+            this.meshTextures[this.meshTexturesPointer],
+
+            ( texture ) => {
+
+                this.meshTexture = texture
+
+                this.meshPicture.material.map = this.meshTexture
+
+                this.meshPicture.material.needsUpdate = true;
+            
+            }
+        )
 
     }
 }

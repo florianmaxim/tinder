@@ -1173,14 +1173,12 @@ var controller1, controller2;
 var raycaster, intersected = [];
 var tempMatrix = new THREE.Matrix4();
 
-let pictures;
-
-let bodies = [];
-let meshes = [];
-
-let house;
+let picturesMeshes;
+let pictures = [];
 
 let world;
+
+let intersectedPicture;
 
 init();
 animate();
@@ -1196,14 +1194,22 @@ function fetchRecommendations() {
 		response.results.forEach(element => {
 
 			const id = element._id
-			const photoId = element.photos[0].id
 
-			const dimensions = `640x640`;
+			let imageURLs = []
+			//Collect image urls
+			element.photos.forEach(element => {
 
-			const url = `${config.API.BASE_URL}/image/${id}/${dimensions}_${photoId}`
+				const photoId = element.id
+				const dimensions = `640x640`;
+				const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
+	
+				imageURLs.push(url)
+			})
 
 			//Add Picture
-			pictures.add(new Picture({
+			const picture = new Picture({
+
+				images: imageURLs,
 
 				position: {
 					x: randomIntFromInterval(-5,5),
@@ -1217,11 +1223,13 @@ function fetchRecommendations() {
 					z:Math.random() * 2 * Math.PI
 				},
 
-				photo: url,
 				//photo: 'models/frames/me.jpg',
 				containerWireframe: false,
 				containerOpacity: 0
-			}))
+			})
+
+			pictures.push(picture)
+			picturesMeshes.add(picture.getMesh())
 
 		});
 
@@ -1305,8 +1313,8 @@ function init() {
 	light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
 
-	pictures = new THREE.Group();
-	scene.add( pictures );
+	picturesMeshes = new THREE.Group();
+	scene.add( picturesMeshes );
 
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setPixelRatio( window.devicePixelRatio );
@@ -1413,7 +1421,7 @@ function onTriggerUp( event ) {
 		object.matrix.premultiply( controller.matrixWorld );
 		object.matrix.decompose( object.position, object.quaternion, object.scale );
 		object.material.emissive.b = 0;
-		pictures.add( object );
+		picturesMeshes.add( object );
 
 		controller.userData.selected = undefined;
 
@@ -1423,10 +1431,15 @@ function onTriggerUp( event ) {
 }
 
 function onTriggerDown2(){
+
+
 }
 
 function onTriggerUp2(){
-	fetchRecommendations();	
+	//fetchRecommendations();	
+
+	pictures[intersected[0].userData.count].setTexture()
+
 }
 
 function getIntersections( controller ) {
@@ -1436,7 +1449,7 @@ function getIntersections( controller ) {
 	raycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
 	raycaster.ray.direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-	return raycaster.intersectObjects( pictures.children );
+	return raycaster.intersectObjects( picturesMeshes.children );
 
 }
 
@@ -1458,6 +1471,8 @@ function intersectObjects( controller ) {
 		intersected.push( object );
 
 		line.scale.z = intersection.distance;
+
+
 
 	} else {
 
@@ -1497,6 +1512,14 @@ function render() {
 		mesh.quaternion.copy( bodies[ index ].getQuaternion() );
 
 	})*/
+
+	pictures.forEach(picture => {
+
+		if(!config.picture.rotation) return
+		picture.getMesh().rotation.x += 0.0005;
+		picture.getMesh().rotation.y += 0.0005;
+		
+	})
 	
 
 	controller1.update();

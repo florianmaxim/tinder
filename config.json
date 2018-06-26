@@ -5,6 +5,7 @@
     },
 
     "picture" : {
-        "frame" : false
+        "frame" : false,
+        "rotating": false
     }
 }

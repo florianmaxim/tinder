@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({7:[function(require,module,exports) {
+})({8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],8:[function(require,module,exports) {
+},{}],7:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53781,7 +53781,8 @@ module.exports = {
     },
 
     "picture" : {
-        "frame" : false
+        "frame" : false,
+        "rotating": false
     }
 };
 },{}],5:[function(require,module,exports) {
@@ -53818,10 +53819,16 @@ var materialGold = new THREE.MeshPhongMaterial({
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
-
 function remapUVs(geo) {
 
-    var face, i, j, len, max, min, offset, ref, size, v1, v2, v3;
+    var max = void 0,
+        min = void 0,
+        offset = void 0,
+        size = void 0,
+        v1 = void 0,
+        v2 = void 0,
+        v3 = void 0;
+
     geo.computeBoundingBox();
 
     min = geo.boundingBox.min;
@@ -53829,64 +53836,68 @@ function remapUVs(geo) {
 
     offset = new THREE.Vector2(0 - min.x, 0 - min.y);
     size = new THREE.Vector2(max.x - min.x, max.y - min.y);
+
     geo.faceVertexUvs[0] = [];
 
-    ref = geo.faces;
-    for (i = j = 0, len = ref.length; j < len; i = ++j) {
-        face = ref[i];
+    geo.faces.forEach(function (face) {
+
         v1 = geo.vertices[face.a];
         v2 = geo.vertices[face.b];
         v3 = geo.vertices[face.c];
+
         geo.faceVertexUvs[0].push([new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y)]);
-    }
+    });
 
     return geo.uvsNeedUpdate = true;
 };
 
 function makeRoundedCornerPlane() {
-    var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 2;
-    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
-    var smooth = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 16;
+    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1.7;
+    var radius = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+    var smooth = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 16;
 
 
     var geometry = new THREE.Geometry();
 
-    offset = (offset - radius) / 2;
-    radius = radius / 4;
-    smooth = 16;
+    var _width = width;
+    var _height = height;
+
+    var _radius = .125;
+    var _smooth = 16;
 
     var cornerA = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 1, Math.PI * 2 / 4);
     var matrixA = new THREE.Matrix4();
-    matrixA.makeTranslation(0 - offset, 0 + offset, 0);
+    matrixA.makeTranslation(-width / 2, height / 2, 0);
     geometry.merge(cornerA, matrixA);
 
     var cornerB = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 0, Math.PI * 2 / 4);
     var matrixB = new THREE.Matrix4();
-    matrixB.makeTranslation(0 + offset, 0 + offset, 0);
+    matrixB.makeTranslation(width / 2, height / 2, 0);
     geometry.merge(cornerB, matrixB);
 
-    var cornerC = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 3, Math.PI * 2 / 4);
+    var cornerC = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 2, Math.PI * 2 / 4);
     var matrixC = new THREE.Matrix4();
-    matrixC.makeTranslation(0 + offset, 0 - offset, 0);
+    matrixC.makeTranslation(-width / 2, -height / 2, 0);
     geometry.merge(cornerC, matrixC);
 
-    var cornerD = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 2, Math.PI * 2 / 4);
+    var cornerD = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 3, Math.PI * 2 / 4);
     var matrixD = new THREE.Matrix4();
-    matrixD.makeTranslation(0 - offset, 0 - offset, 0);
+    matrixD.makeTranslation(width / 2, -height / 2, 0);
     geometry.merge(cornerD, matrixD);
 
-    var planeA = new THREE.PlaneGeometry((offset + radius) * 2, offset * 2);
-    geometry.merge(planeA);
+    var planeHorizontal = new THREE.PlaneGeometry(width + radius * 2, height);
+    geometry.merge(planeHorizontal);
 
-    var planeB = new THREE.PlaneGeometry(offset * 2, (offset + radius) * 2);
-    geometry.merge(planeB);
-
-    //geometry.scale(1,1.7,1)
+    var planeVertical = new THREE.PlaneGeometry(width, height + radius * 2);
+    geometry.merge(planeVertical);
 
     remapUVs(geometry);
 
     return geometry;
 }
+
+var count = 0;
 
 var ComponentPicture = function () {
     function ComponentPicture(props) {
@@ -53898,6 +53909,10 @@ var ComponentPicture = function () {
         this.meshFrame;
         this.meshPicture;
 
+        this.meshTexture;
+        this.meshTextures = [];
+        this.meshTexturesPointer = 0;
+
         return this.init(props);
     }
 
@@ -53906,8 +53921,11 @@ var ComponentPicture = function () {
         value: function init(props) {
             var _this = this;
 
+            //Pass Images
+            this.meshTextures = props.images !== undefined ? props.images : [];
+
             //Init ContainerMesh
-            var geometry = new THREE.BoxBufferGeometry(1.5, 0.1, 2.1);
+            var geometry = new THREE.BoxBufferGeometry(1, .1, 1.7);
             var material = new THREE.MeshStandardMaterial({
                 color: Math.random() * 0x0000ff,
                 roughness: 0.7,
@@ -53917,6 +53935,7 @@ var ComponentPicture = function () {
                 wireframe: props.containerWireframe !== undefined ? props.containerWireframe : true
             });
             this.meshContainer = new THREE.Mesh(geometry, material);
+            this.meshContainer.scale.set(1.125, 1.125, 1.125);
 
             //Apply position if given
             this.meshContainer.position.set(props.position.x, props.position.y, props.position.z);
@@ -53931,7 +53950,7 @@ var ComponentPicture = function () {
 
                 var textureLoader = new THREE.TextureLoader();
                 textureLoader.crossOrigin = "Anonymous";
-                textureLoader.load(props.photo, function (texture) {
+                textureLoader.load(_this.meshTextures[_this.meshTexturesPointer], function (texture) {
 
                     object.traverse(function (obj) {
 
@@ -53959,20 +53978,24 @@ var ComponentPicture = function () {
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
 
-                            var geo = makeRoundedCornerPlane(2, 0.5);
+                            var geo = makeRoundedCornerPlane(1, 1.7, 0.125);
                             //var geo  = new THREE.PlaneGeometry(0.7,1)
                             var mat = new THREE.MeshBasicMaterial();
-                            var mes = new THREE.Mesh(geo, mat);
-                            mes.material.side = THREE.DoubleSide;
+
+                            _this.meshPicture = new THREE.Mesh(geo, mat);
+                            _this.meshPicture.material.side = THREE.DoubleSide;
                             //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
-                            mes.material.map = texture;
+
+                            _this.meshTexture = texture;
+
+                            _this.meshPicture.material.map = _this.meshTexture;
                             //mes.scale.set(1.5, 1.5, 1.5)
                             //mes.position.set(0,0.007,0)
                             //mes.rotation.x = - Math.PI / 2;
+                            _this.meshPicture.rotation.x = -Math.PI / 2;
+                            _this.meshPicture.castShadow = true;
 
-                            mes.castShadow = true;
-
-                            _this.meshContainer.add(mes);
+                            _this.meshContainer.add(_this.meshPicture);
                         } else {
                             obj.material = materialGold;
                         }
@@ -53991,18 +54014,42 @@ var ComponentPicture = function () {
                 });
             });
 
+            this.meshContainer.userData.count = count;
+            count++;
+
+            return this;
+        }
+    }, {
+        key: 'getMesh',
+        value: function getMesh() {
             return this.meshContainer;
         }
     }, {
-        key: 'setPicture',
-        value: function setPicture() {}
+        key: 'setTexture',
+        value: function setTexture() {
+            var _this2 = this;
+
+            this.meshTexturesPointer = this.meshTexturesPointer < this.meshTextures.length - 1 ? this.meshTexturesPointer + 1 : 0;
+
+            var textureLoader = new THREE.TextureLoader();
+            textureLoader.crossOrigin = "Anonymous";
+
+            textureLoader.load(this.meshTextures[this.meshTexturesPointer], function (texture) {
+
+                _this2.meshTexture = texture;
+
+                _this2.meshPicture.material.map = _this2.meshTexture;
+
+                _this2.meshPicture.material.needsUpdate = true;
+            });
+        }
     }]);
 
     return ComponentPicture;
 }();
 
 exports.default = ComponentPicture;
-},{"../config.json":4,"three":7}],2:[function(require,module,exports) {
+},{"../config.json":4,"three":8}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -55057,14 +55104,12 @@ var raycaster,
     intersected = [];
 var tempMatrix = new THREE.Matrix4();
 
-var pictures = void 0;
-
-var bodies = [];
-var meshes = [];
-
-var house = void 0;
+var picturesMeshes = void 0;
+var pictures = [];
 
 var world = void 0;
+
+var intersectedPicture = void 0;
 
 init();
 animate();
@@ -55080,14 +55125,22 @@ function fetchRecommendations() {
 						response.results.forEach(function (element) {
 
 									var id = element._id;
-									var photoId = element.photos[0].id;
 
-									var dimensions = '640x640';
+									var imageURLs = [];
+									//Collect image urls
+									element.photos.forEach(function (element) {
 
-									var url = config.API.BASE_URL + '/image/' + id + '/' + dimensions + '_' + photoId;
+												var photoId = element.id;
+												var dimensions = '640x640';
+												var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
+
+												imageURLs.push(url);
+									});
 
 									//Add Picture
-									pictures.add(new _ComponentPicture2.default({
+									var picture = new _ComponentPicture2.default({
+
+												images: imageURLs,
 
 												position: {
 															x: randomIntFromInterval(-5, 5),
@@ -55101,11 +55154,13 @@ function fetchRecommendations() {
 															z: Math.random() * 2 * Math.PI
 												},
 
-												photo: url,
 												//photo: 'models/frames/me.jpg',
 												containerWireframe: false,
 												containerOpacity: 0
-									}));
+									});
+
+									pictures.push(picture);
+									picturesMeshes.add(picture.getMesh());
 						});
 			});
 }
@@ -55187,8 +55242,8 @@ function init() {
 			light.shadow.mapSize.set(4096, 4096);
 			scene.add(light);
 
-			pictures = new THREE.Group();
-			scene.add(pictures);
+			picturesMeshes = new THREE.Group();
+			scene.add(picturesMeshes);
 
 			renderer = new THREE.WebGLRenderer({ antialias: true });
 			renderer.setPixelRatio(window.devicePixelRatio);
@@ -55291,7 +55346,7 @@ function onTriggerUp(event) {
 						object.matrix.premultiply(controller.matrixWorld);
 						object.matrix.decompose(object.position, object.quaternion, object.scale);
 						object.material.emissive.b = 0;
-						pictures.add(object);
+						picturesMeshes.add(object);
 
 						controller.userData.selected = undefined;
 			}
@@ -55300,7 +55355,9 @@ function onTriggerUp(event) {
 function onTriggerDown2() {}
 
 function onTriggerUp2() {
-			fetchRecommendations();
+			//fetchRecommendations();	
+
+			pictures[intersected[0].userData.count].setTexture();
 }
 
 function getIntersections(controller) {
@@ -55310,7 +55367,7 @@ function getIntersections(controller) {
 			raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
 			raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-			return raycaster.intersectObjects(pictures.children);
+			return raycaster.intersectObjects(picturesMeshes.children);
 }
 
 function intersectObjects(controller) {
@@ -55365,6 +55422,13 @@ function render() {
    
    })*/
 
+			pictures.forEach(function (picture) {
+
+						if (!config.picture.rotation) return;
+						picture.getMesh().rotation.x += 0.0005;
+						picture.getMesh().rotation.y += 0.0005;
+			});
+
 			controller1.update();
 			controller2.update();
 
@@ -55375,7 +55439,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],17:[function(require,module,exports) {
+},{"three":8,"oimo":7,"./config.json":4,"./components/ComponentPicture":5}],13:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55404,7 +55468,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '49904' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '50140' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55545,5 +55609,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[17,2], null)
+},{}]},{},[13,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map
