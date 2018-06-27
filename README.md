@@ -2,7 +2,7 @@
 
 ## <p align="center">A Spatial Tinder Implementation</p>
 
-### An endless white space is constantly being filled with tinder cards falling from the sky
+### <p align="center">An endless white space is constantly being filled with human recommendations falling from the sky.</p>
 
 - There is a white room.
 - Tinder cards are falling from the ceiling.
