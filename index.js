@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as OIMO from 'oimo';
 
 import * as config from './config.json'
+import {log} from './helpers'
 
 import Picture from './components/ComponentPicture';
 
@@ -1181,57 +1182,48 @@ let bodies = [];
 
 let intersectedPicture;
 
+let pause = false
+
+let triggerDown = false
+let selectedMesh = undefined
+
 init();
 animate();
 
 function fetchRecommendations() {
 
-	console.log('fetch recs')
-	
-	fetch(`${config.API.BASE_URL}/recs/${config.API.TOKEN}`)
-	.then((response) => response.json())
-	.then((response) => {
+	log('fetch recs')
 
-		response.results.forEach(element => {
-
-			const id = element._id
-
-			let imageURLs = []
-			//Collect image urls
-			element.photos.forEach(element => {
-
-				const photoId = element.id
-				const dimensions = `640x640`;
-				const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
-	
-				imageURLs.push(url)
-
-				//console.log(url)
-			})
+	if(config.simulation){
 
 			const position = {
-				x: randomIntFromInterval(-5,5),
-				y: randomIntFromInterval(10,50),
-				z: randomIntFromInterval(-5,5)
+				x: randomIntFromInterval(-.5,.5),
+				y: randomIntFromInterval(5, 10),
+				z: randomIntFromInterval(-.5,.5)
 			}
-
 			const rotation = {
 				x:Math.random() * 2 * Math.PI,
 				y:Math.random() * 2 * Math.PI,
 				z:Math.random() * 2 * Math.PI
 			}
+			const factor = Math.random()
+			const scale = {
+				x:factor,
+				y:factor,
+				z:factor
+			}
 
 			//Add Picture
 			const picture = new Picture({
 
-				images: imageURLs,
+				images: ['models/textures/me.jpg'],
 
 				position: position,
-
 				rotation: rotation,
+				scale: scale,
 
 				containerWireframe: false,
-				containerOpacity: 0
+				containerOpacity: .25
 
 			})
 
@@ -1240,7 +1232,90 @@ function fetchRecommendations() {
 
 			var body = world.add({ 
 				type:'box', // type of shape : sphere, box, cylinder 
-				size:[1,.1,1.7], // size of shape
+				size:[1*scale.x,.1*scale.y,1.7*scale.z], // size of shape
+				pos:[position.x,position.y,position.z], // start position in degree
+				rot:[0,0,0], // start rotation in degree
+				move:true, // dynamic or statique
+				density: 1,
+				friction: .5,
+				restitution: 0.2,
+				belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+				collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+			});
+
+			bodies.push(body)
+		return
+	}
+	
+	fetch(`${config.API.BASE_URL}/recs/${config.API.TOKEN}`)
+	.then((response) => response.json())
+	.then((response) => {
+
+		log(response)
+
+		let count = 0;
+		response.results.forEach(element => {
+
+			if(count>=config.fetch.ItemsPerCall) return
+
+			count++;
+
+			const id = element._id
+
+			let imageURLs = []
+
+			//Collect image urls
+			element.photos.forEach(element => {
+
+				const photoId = element.id
+				const dimensions = `640x640`;
+				const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
+
+				imageURLs.push(url)
+
+				log(url)
+
+			})
+
+			const position = {
+				x: randomIntFromInterval(-.5,.5),
+				y: randomIntFromInterval(10,50),
+				z: randomIntFromInterval(-.5,.5)
+			}
+
+			const rotation = {
+				x:Math.random() * 2 * Math.PI,
+				y:Math.random() * 2 * Math.PI,
+				z:Math.random() * 2 * Math.PI
+			}
+
+			const factor = Math.random()
+			const scale = {
+				x:factor,
+				y:factor,
+				z:factor
+			}
+
+			//Add Picture
+			const picture = new Picture({
+
+				images: imageURLs,
+
+				position: position,
+				rotation: rotation,
+				scale: scale,
+
+				containerWireframe: false,
+				containerOpacity: .25
+
+			})
+
+			pictures.push(picture)
+			picturesMeshes.add(picture.getMesh())
+
+			var body = world.add({ 
+				type:'box', // type of shape : sphere, box, cylinder 
+				size:[1*scale.x,.1*scale.y,1.7*scale.z], // size of shape
 				pos:[position.x,position.y,position.z], // start position in degree
 				rot:[0,0,0], // start rotation in degree
 				move:true, // dynamic or statique
@@ -1286,17 +1361,17 @@ function init() {
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 0xFFFFFF );
 
-	scene.fog = new THREE.Fog(0xffffff, 0, 10)
+	scene.fog = new THREE.Fog(0xffffff, 0, 50)
 
-	var size = 100;
-	var divisions = 200;
+	var size = 1000;
+	var divisions = 1000;
 
 	var gridHelper = new THREE.GridHelper( size, divisions );
-	//scene.add( gridHelper );
+	scene.add( gridHelper );
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
-	var geometry = new THREE.BoxBufferGeometry( 100, 1, 100 );
+	var geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000 );
 	var material = new THREE.MeshStandardMaterial( {
 		//color: 0x0000ff,		
 		color: 0xeeeeee,
@@ -1327,12 +1402,12 @@ function init() {
 
 	var light = new THREE.DirectionalLight( 0xffffff );
 	light.position.set( 2, 1, 0 );
-	light.castShadow = true;
+	//light.castShadow = true;
 	light.shadow.camera.top = 2;
 	light.shadow.camera.bottom = -2;
 	light.shadow.camera.right = 2;
 	light.shadow.camera.left = -2;
-	light.shadow.mapSize.set( 4096, 4096 );
+	//light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
 
 	picturesMeshes = new THREE.Group();
@@ -1343,7 +1418,7 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	renderer.shadowMap.enabled = true;
+	//renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
 	
 	container.appendChild( renderer.domElement );
@@ -1360,8 +1435,8 @@ function init() {
 
 	controller2 = new THREE.ViveController( 1 );
 	controller2.standingMatrix = renderer.vr.getStandingMatrix();
-	controller2.addEventListener( 'triggerdown', onTriggerDown2 );
-	controller2.addEventListener( 'triggerup', onTriggerUp2 );
+	//controller2.addEventListener( 'triggerdown', onTriggerDown2 );
+	//controller2.addEventListener( 'triggerup', onTriggerUp2 );
 	scene.add( controller2 );
 
 	var loader = new THREE.OBJLoader();
@@ -1397,7 +1472,7 @@ function init() {
 	setInterval(() => {
 	fetchRecommendations();
 
-	}, 2000)
+	}, config.fetch.interval)
 
 	fetchRecommendations();
 
@@ -1415,6 +1490,8 @@ function onWindowResize() {
 
 function onTriggerDown( event ) {
 
+	triggerDown = true
+
 	var controller = event.target;
 
 	var intersections = getIntersections( controller );
@@ -1428,7 +1505,10 @@ function onTriggerDown( event ) {
 		var object = intersection.object;
 		object.matrix.premultiply( tempMatrix );
 		object.matrix.decompose( object.position, object.quaternion, object.scale );
+		
 		object.material.emissive.b = 1;
+
+		//Add selected object to controller
 		controller.add( object );
 
 		controller.userData.selected = object;
@@ -1439,6 +1519,8 @@ function onTriggerDown( event ) {
 
 function onTriggerUp( event ) {
 
+	triggerDown = false
+
 	var controller = event.target;
 
 	if ( controller.userData.selected !== undefined ) {
@@ -1446,25 +1528,16 @@ function onTriggerUp( event ) {
 		var object = controller.userData.selected;
 		object.matrix.premultiply( controller.matrixWorld );
 		object.matrix.decompose( object.position, object.quaternion, object.scale );
+		
 		object.material.emissive.b = 0;
+
+
 		picturesMeshes.add( object );
 
 		controller.userData.selected = undefined;
 
 	}
 
-
-}
-
-function onTriggerDown2(){
-
-
-}
-
-function onTriggerUp2(){
-	//fetchRecommendations();	
-
-	pictures[intersected[0].userData.count].setTexture()
 
 }
 
@@ -1482,7 +1555,6 @@ function getIntersections( controller ) {
 function intersectObjects( controller ) {
 
 	// Do not highlight when already selected
-
 	if ( controller.userData.selected !== undefined ) return;
 
 	var line = controller.getObjectByName( 'line' );
@@ -1493,12 +1565,14 @@ function intersectObjects( controller ) {
 		var intersection = intersections[ 0 ];
 
 		var object = intersection.object;
+
 		object.material.emissive.r = 1;
 		intersected.push( object );
 
 		line.scale.z = intersection.distance;
 
-
+		object.userData.intersected = true;
+		console.log(object.userData.intersected)
 
 	} else {
 
@@ -1513,7 +1587,11 @@ function cleanIntersected() {
 	while ( intersected.length ) {
 
 		var object = intersected.pop();
+
 		object.material.emissive.r = 0;
+
+		object.userData.intersected = false;
+		console.log(object.userData.intersected)
 
 	}
 
@@ -1529,27 +1607,31 @@ function animate() {
 
 function render() {
 
-	// update world
+	if(!triggerDown)
 	world.step();
 
-	/*meshes.forEach((mesh, index) => {
-
-		mesh.position.copy( bodies[ index ].getPosition() );
-		mesh.quaternion.copy( bodies[ index ].getQuaternion() );
-
-	})*/
-
 	pictures.map((picture, index) => {
-
-		picture.getMesh().position.copy( bodies[ index ].getPosition() );
-		picture.getMesh().quaternion.copy( bodies[ index ].getQuaternion() );
-
-		if(!config.picture.rotation) return
-		picture.getMesh().rotation.x += 0.0005;
-		picture.getMesh().rotation.y += 0.0005;
 		
+		const pictureMesh = picture.getMesh()
+
+		if(pictureMesh.userData.intersected===true){
+
+			bodies[ index ].resetPosition(pictureMesh.position.x, pictureMesh.position.y, pictureMesh.position.z)
+			bodies[ index ].resetRotation(pictureMesh.rotation.x, pictureMesh.rotation.y, pictureMesh.rotation.z)
+		
+		}else{
+
+			if(triggerDown){
+
+			}else{
+
+				pictureMesh.position.copy( bodies[ index ].getPosition() );
+				pictureMesh.quaternion.copy( bodies[ index ].getQuaternion() );
+			}
+
+		}
+
 	})
-	
 
 	controller1.update();
 	controller2.update();

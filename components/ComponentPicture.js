@@ -130,7 +130,6 @@ export default class ComponentPicture {
             wireframe: props.containerWireframe!==undefined?props.containerWireframe:true
         });
         this.meshContainer = new THREE.Mesh( geometry, material );
-        this.meshContainer.scale.set(1.125,1.125,1.125)
 
         //Apply position if given
         this.meshContainer.position.set(
@@ -144,6 +143,13 @@ export default class ComponentPicture {
             props.rotation.x,
             props.rotation.y,
             props.rotation.z      
+        )
+
+         //Apply rotation if given
+         this.meshContainer.scale.set(
+            props.scale.x,
+            props.scale.y,
+            props.scale.z      
         )
 
         //Init FrameMesh
@@ -199,7 +205,7 @@ export default class ComponentPicture {
                             this.meshTexture = texture
                             
                             this.meshPicture.material.map = this.meshTexture
-                                //mes.scale.set(1.5, 1.5, 1.5)
+                            this.meshPicture.scale.set(.75,.75,.75)
                                 //mes.position.set(0,0.007,0)
                                 //mes.rotation.x = - Math.PI / 2;
                             this.meshPicture.rotation.x = - Math.PI / 2;

@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({7:[function(require,module,exports) {
+})({8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],8:[function(require,module,exports) {
+},{}],9:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53775,6 +53775,9 @@ exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
 },{}],4:[function(require,module,exports) {
 module.exports = {
+    "debug" : false,
+    "simulation": true,
+
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
         "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
@@ -53783,9 +53786,33 @@ module.exports = {
     "picture" : {
         "frame" : false,
         "rotatinon": false
+    },
+
+    "fetch": {
+        "ItemsPerCall" : 3,
+        "interval" : 2000
     }
 };
 },{}],5:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.log = undefined;
+
+var _config = require('./config.json');
+
+var config = _interopRequireWildcard(_config);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var log = function log(props) {
+    if (config.debug) console.log(props);
+};
+
+exports.log = log;
+},{"./config.json":4}],6:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53941,13 +53968,15 @@ var ComponentPicture = function () {
                 wireframe: props.containerWireframe !== undefined ? props.containerWireframe : true
             });
             this.meshContainer = new THREE.Mesh(geometry, material);
-            this.meshContainer.scale.set(1.125, 1.125, 1.125);
 
             //Apply position if given
             this.meshContainer.position.set(props.position.x, props.position.y, props.position.z);
 
             //Apply rotation if given
             this.meshContainer.rotation.set(props.rotation.x, props.rotation.y, props.rotation.z);
+
+            //Apply rotation if given
+            this.meshContainer.scale.set(props.scale.x, props.scale.y, props.scale.z);
 
             //Init FrameMesh
 
@@ -53996,7 +54025,7 @@ var ComponentPicture = function () {
                 _this.meshTexture = texture;
 
                 _this.meshPicture.material.map = _this.meshTexture;
-                //mes.scale.set(1.5, 1.5, 1.5)
+                _this.meshPicture.scale.set(.75, .75, .75);
                 //mes.position.set(0,0.007,0)
                 //mes.rotation.x = - Math.PI / 2;
                 _this.meshPicture.rotation.x = -Math.PI / 2;
@@ -54059,7 +54088,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config.json":4,"three":7}],2:[function(require,module,exports) {
+},{"../config.json":4,"three":8}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -54073,6 +54102,8 @@ var OIMO = _interopRequireWildcard(_oimo);
 var _config = require('./config.json');
 
 var config = _interopRequireWildcard(_config);
+
+var _helpers = require('./helpers');
 
 var _ComponentPicture = require('./components/ComponentPicture');
 
@@ -55122,22 +55153,87 @@ var bodies = [];
 
 var intersectedPicture = void 0;
 
+var pause = false;
+
+var triggerDown = false;
+var selectedMesh = undefined;
+
 init();
 animate();
 
 function fetchRecommendations() {
 
-			console.log('fetch recs');
+			(0, _helpers.log)('fetch recs');
+
+			if (config.simulation) {
+
+						var position = {
+									x: randomIntFromInterval(-.5, .5),
+									y: randomIntFromInterval(5, 10),
+									z: randomIntFromInterval(-.5, .5)
+						};
+						var rotation = {
+									x: Math.random() * 2 * Math.PI,
+									y: Math.random() * 2 * Math.PI,
+									z: Math.random() * 2 * Math.PI
+						};
+						var factor = Math.random();
+						var scale = {
+									x: factor,
+									y: factor,
+									z: factor
+
+									//Add Picture
+						};var picture = new _ComponentPicture2.default({
+
+									images: ['models/textures/me.jpg'],
+
+									position: position,
+									rotation: rotation,
+									scale: scale,
+
+									containerWireframe: false,
+									containerOpacity: .25
+
+						});
+
+						pictures.push(picture);
+						picturesMeshes.add(picture.getMesh());
+
+						var body = world.add({
+									type: 'box', // type of shape : sphere, box, cylinder 
+									size: [1 * scale.x, .1 * scale.y, 1.7 * scale.z], // size of shape
+									pos: [position.x, position.y, position.z], // start position in degree
+									rot: [0, 0, 0], // start rotation in degree
+									move: true, // dynamic or statique
+									density: 1,
+									friction: .5,
+									restitution: 0.2,
+									belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+									collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+						});
+
+						bodies.push(body);
+						return;
+			}
 
 			fetch(config.API.BASE_URL + '/recs/' + config.API.TOKEN).then(function (response) {
 						return response.json();
 			}).then(function (response) {
 
+						(0, _helpers.log)(response);
+
+						var count = 0;
 						response.results.forEach(function (element) {
+
+									if (count >= config.fetch.ItemsPerCall) return;
+
+									count++;
 
 									var id = element._id;
 
 									var imageURLs = [];
+
 									//Collect image urls
 									element.photos.forEach(function (element) {
 
@@ -55147,19 +55243,26 @@ function fetchRecommendations() {
 
 												imageURLs.push(url);
 
-												//console.log(url)
+												(0, _helpers.log)(url);
 									});
 
 									var position = {
-												x: randomIntFromInterval(-5, 5),
+												x: randomIntFromInterval(-.5, .5),
 												y: randomIntFromInterval(10, 50),
-												z: randomIntFromInterval(-5, 5)
+												z: randomIntFromInterval(-.5, .5)
 									};
 
 									var rotation = {
 												x: Math.random() * 2 * Math.PI,
 												y: Math.random() * 2 * Math.PI,
 												z: Math.random() * 2 * Math.PI
+									};
+
+									var factor = Math.random();
+									var scale = {
+												x: factor,
+												y: factor,
+												z: factor
 
 												//Add Picture
 									};var picture = new _ComponentPicture2.default({
@@ -55167,11 +55270,11 @@ function fetchRecommendations() {
 												images: imageURLs,
 
 												position: position,
-
 												rotation: rotation,
+												scale: scale,
 
 												containerWireframe: false,
-												containerOpacity: 0
+												containerOpacity: .25
 
 									});
 
@@ -55180,7 +55283,7 @@ function fetchRecommendations() {
 
 									var body = world.add({
 												type: 'box', // type of shape : sphere, box, cylinder 
-												size: [1, .1, 1.7], // size of shape
+												size: [1 * scale.x, .1 * scale.y, 1.7 * scale.z], // size of shape
 												pos: [position.x, position.y, position.z], // start position in degree
 												rot: [0, 0, 0], // start rotation in degree
 												move: true, // dynamic or statique
@@ -55224,17 +55327,17 @@ function init() {
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xFFFFFF);
 
-			scene.fog = new THREE.Fog(0xffffff, 0, 10);
+			scene.fog = new THREE.Fog(0xffffff, 0, 50);
 
-			var size = 100;
-			var divisions = 200;
+			var size = 1000;
+			var divisions = 1000;
 
 			var gridHelper = new THREE.GridHelper(size, divisions);
-			//scene.add( gridHelper );
+			scene.add(gridHelper);
 
 			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
-			var geometry = new THREE.BoxBufferGeometry(100, 1, 100);
+			var geometry = new THREE.BoxBufferGeometry(1000, 1, 1000);
 			var material = new THREE.MeshStandardMaterial({
 						//color: 0x0000ff,		
 						color: 0xeeeeee,
@@ -55265,12 +55368,12 @@ function init() {
 
 			var light = new THREE.DirectionalLight(0xffffff);
 			light.position.set(2, 1, 0);
-			light.castShadow = true;
+			//light.castShadow = true;
 			light.shadow.camera.top = 2;
 			light.shadow.camera.bottom = -2;
 			light.shadow.camera.right = 2;
 			light.shadow.camera.left = -2;
-			light.shadow.mapSize.set(4096, 4096);
+			//light.shadow.mapSize.set( 4096, 4096 );
 			scene.add(light);
 
 			picturesMeshes = new THREE.Group();
@@ -55281,7 +55384,7 @@ function init() {
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
-			renderer.shadowMap.enabled = true;
+			//renderer.shadowMap.enabled = true;
 			renderer.vr.enabled = true;
 
 			container.appendChild(renderer.domElement);
@@ -55298,8 +55401,8 @@ function init() {
 
 			controller2 = new THREE.ViveController(1);
 			controller2.standingMatrix = renderer.vr.getStandingMatrix();
-			controller2.addEventListener('triggerdown', onTriggerDown2);
-			controller2.addEventListener('triggerup', onTriggerUp2);
+			//controller2.addEventListener( 'triggerdown', onTriggerDown2 );
+			//controller2.addEventListener( 'triggerup', onTriggerUp2 );
 			scene.add(controller2);
 
 			var loader = new THREE.OBJLoader();
@@ -55332,7 +55435,7 @@ function init() {
 
 			setInterval(function () {
 						fetchRecommendations();
-			}, 2000);
+			}, config.fetch.interval);
 
 			fetchRecommendations();
 
@@ -55349,6 +55452,8 @@ function onWindowResize() {
 
 function onTriggerDown(event) {
 
+			triggerDown = true;
+
 			var controller = event.target;
 
 			var intersections = getIntersections(controller);
@@ -55362,7 +55467,10 @@ function onTriggerDown(event) {
 						var object = intersection.object;
 						object.matrix.premultiply(tempMatrix);
 						object.matrix.decompose(object.position, object.quaternion, object.scale);
+
 						object.material.emissive.b = 1;
+
+						//Add selected object to controller
 						controller.add(object);
 
 						controller.userData.selected = object;
@@ -55371,6 +55479,8 @@ function onTriggerDown(event) {
 
 function onTriggerUp(event) {
 
+			triggerDown = false;
+
 			var controller = event.target;
 
 			if (controller.userData.selected !== undefined) {
@@ -55378,19 +55488,13 @@ function onTriggerUp(event) {
 						var object = controller.userData.selected;
 						object.matrix.premultiply(controller.matrixWorld);
 						object.matrix.decompose(object.position, object.quaternion, object.scale);
+
 						object.material.emissive.b = 0;
+
 						picturesMeshes.add(object);
 
 						controller.userData.selected = undefined;
 			}
-}
-
-function onTriggerDown2() {}
-
-function onTriggerUp2() {
-			//fetchRecommendations();	
-
-			pictures[intersected[0].userData.count].setTexture();
 }
 
 function getIntersections(controller) {
@@ -55406,7 +55510,6 @@ function getIntersections(controller) {
 function intersectObjects(controller) {
 
 			// Do not highlight when already selected
-
 			if (controller.userData.selected !== undefined) return;
 
 			var line = controller.getObjectByName('line');
@@ -55417,10 +55520,14 @@ function intersectObjects(controller) {
 						var intersection = intersections[0];
 
 						var object = intersection.object;
+
 						object.material.emissive.r = 1;
 						intersected.push(object);
 
 						line.scale.z = intersection.distance;
+
+						object.userData.intersected = true;
+						console.log(object.userData.intersected);
 			} else {
 
 						line.scale.z = 5;
@@ -55432,7 +55539,11 @@ function cleanIntersected() {
 			while (intersected.length) {
 
 						var object = intersected.pop();
+
 						object.material.emissive.r = 0;
+
+						object.userData.intersected = false;
+						console.log(object.userData.intersected);
 			}
 }
 
@@ -55445,24 +55556,24 @@ function animate() {
 
 function render() {
 
-			// update world
-			world.step();
-
-			/*meshes.forEach((mesh, index) => {
-   
-   	mesh.position.copy( bodies[ index ].getPosition() );
-   	mesh.quaternion.copy( bodies[ index ].getQuaternion() );
-   
-   })*/
+			if (!triggerDown) world.step();
 
 			pictures.map(function (picture, index) {
 
-						picture.getMesh().position.copy(bodies[index].getPosition());
-						picture.getMesh().quaternion.copy(bodies[index].getQuaternion());
+						var pictureMesh = picture.getMesh();
 
-						if (!config.picture.rotation) return;
-						picture.getMesh().rotation.x += 0.0005;
-						picture.getMesh().rotation.y += 0.0005;
+						if (pictureMesh.userData.intersected === true) {
+
+									bodies[index].resetPosition(pictureMesh.position.x, pictureMesh.position.y, pictureMesh.position.z);
+									bodies[index].resetRotation(pictureMesh.rotation.x, pictureMesh.rotation.y, pictureMesh.rotation.z);
+						} else {
+
+									if (triggerDown) {} else {
+
+												pictureMesh.position.copy(bodies[index].getPosition());
+												pictureMesh.quaternion.copy(bodies[index].getQuaternion());
+									}
+						}
 			});
 
 			controller1.update();
@@ -55475,7 +55586,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],9:[function(require,module,exports) {
+},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],17:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55504,7 +55615,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53933' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '52713' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55645,5 +55756,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[9,2], null)
+},{}]},{},[17,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

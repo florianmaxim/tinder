@@ -1,4 +1,7 @@
 {
+    "debug" : false,
+    "simulation": true,
+
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
         "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
@@ -7,5 +10,10 @@
     "picture" : {
         "frame" : false,
         "rotatinon": false
+    },
+
+    "fetch": {
+        "ItemsPerCall" : 3,
+        "interval" : 2000
     }
 }
