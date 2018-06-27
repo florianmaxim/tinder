@@ -1538,10 +1538,9 @@ function onTriggerUp( event ) {
 
 	}
 
-
 }
 
-function getIntersections( controller ) {
+function getIntersectionsOfController( controller ) {
 
 	tempMatrix.identity().extractRotation( controller.matrixWorld );
 
@@ -1558,12 +1557,11 @@ function intersectObjects( controller ) {
 	if ( controller.userData.selected !== undefined ) return;
 
 	var line = controller.getObjectByName( 'line' );
-	var intersections = getIntersections( controller );
+	var intersections = getIntersectionsOfController( controller );
 
 	if ( intersections.length > 0 ) {
 
 		var intersection = intersections[ 0 ];
-
 		var object = intersection.object;
 
 		object.material.emissive.r = 1;
@@ -1607,6 +1605,14 @@ function animate() {
 
 function render() {
 
+	controller1.update();
+	controller2.update();
+
+	intersectObjects( controller1 );
+	intersectObjects( controller2 );
+
+	cleanIntersected();
+
 	if(!triggerDown)
 	world.step();
 
@@ -1632,14 +1638,6 @@ function render() {
 		}
 
 	})
-
-	controller1.update();
-	controller2.update();
-
-	cleanIntersected();
-
-	intersectObjects( controller1 );
-	intersectObjects( controller2 );
 
 	renderer.render( scene, camera );
 
