@@ -1,11 +1,11 @@
 {
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "6f9fe72b-0cc1-4646-83d6-d4146d1cdb84"
+        "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
     },
 
     "picture" : {
         "frame" : false,
-        "rotating": false
+        "rotatinon": false
     }
 }

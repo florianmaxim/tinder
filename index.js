@@ -1177,6 +1177,7 @@ let picturesMeshes;
 let pictures = [];
 
 let world;
+let bodies = [];
 
 let intersectedPicture;
 
@@ -1204,32 +1205,53 @@ function fetchRecommendations() {
 				const url = `${config.API.BASE_URL}/image/crop/${id}/${dimensions}_${photoId}`
 	
 				imageURLs.push(url)
+
+				//console.log(url)
 			})
+
+			const position = {
+				x: randomIntFromInterval(-5,5),
+				y: randomIntFromInterval(10,50),
+				z: randomIntFromInterval(-5,5)
+			}
+
+			const rotation = {
+				x:Math.random() * 2 * Math.PI,
+				y:Math.random() * 2 * Math.PI,
+				z:Math.random() * 2 * Math.PI
+			}
 
 			//Add Picture
 			const picture = new Picture({
 
 				images: imageURLs,
 
-				position: {
-					x: randomIntFromInterval(-5,5),
-					y: randomIntFromInterval(0,5),
-					z: randomIntFromInterval(-5,5)
-				},
+				position: position,
 
-				rotation: {
-					x:Math.random() * 2 * Math.PI,
-					y:Math.random() * 2 * Math.PI,
-					z:Math.random() * 2 * Math.PI
-				},
+				rotation: rotation,
 
-				//photo: 'models/frames/me.jpg',
 				containerWireframe: false,
 				containerOpacity: 0
+
 			})
 
 			pictures.push(picture)
 			picturesMeshes.add(picture.getMesh())
+
+			var body = world.add({ 
+				type:'box', // type of shape : sphere, box, cylinder 
+				size:[1,.1,1.7], // size of shape
+				pos:[position.x,position.y,position.z], // start position in degree
+				rot:[0,0,0], // start rotation in degree
+				move:true, // dynamic or statique
+				density: 1,
+				friction: 1,
+				restitution: 0.2,
+				belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+				collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+			});
+
+			bodies.push(body)
 
 		});
 
@@ -1246,7 +1268,7 @@ function init() {
 		worldscale: 1, // scale full world 
 		random: true,  // randomize sample
 		info: false,   // calculate statistic or not
-		gravity: [0,-1.8,0] 
+		gravity: [0,-2.1,0] 
 	});
 
 	document.body.style.margin = '0';
@@ -1274,7 +1296,7 @@ function init() {
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
-	var geometry = new THREE.PlaneBufferGeometry( 10, 10 );
+	var geometry = new THREE.BoxBufferGeometry( 100, 1, 100 );
 	var material = new THREE.MeshStandardMaterial( {
 		//color: 0x0000ff,		
 		color: 0xeeeeee,
@@ -1288,13 +1310,13 @@ function init() {
 
 	var body = world.add({ 
 		type:'box', // type of shape : sphere, box, cylinder 
-		size:[10,0.00001,10], // size of shape
+		size:[1000, 1,1000], // size of shape
 		pos: [0,0,0], // start position in degree
 		rot: [0,0,0], // start rotation in degree
 		move:false, // dynamic or statique
 		density: 1,
-		friction: 0.2,
-		restitution: 0.2,
+		friction: 1,
+		restitution: 1,
 		belongsTo: 1, // The bits of the collision groups to which the shape belongs.
 		collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 	});
@@ -1371,7 +1393,11 @@ function init() {
 
 	raycaster = new THREE.Raycaster();
 
-	//
+
+	setInterval(() => {
+	fetchRecommendations();
+
+	}, 2000)
 
 	fetchRecommendations();
 
@@ -1513,7 +1539,10 @@ function render() {
 
 	})*/
 
-	pictures.forEach(picture => {
+	pictures.map((picture, index) => {
+
+		picture.getMesh().position.copy( bodies[ index ].getPosition() );
+		picture.getMesh().quaternion.copy( bodies[ index ].getQuaternion() );
 
 		if(!config.picture.rotation) return
 		picture.getMesh().rotation.x += 0.0005;

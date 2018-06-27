@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({8:[function(require,module,exports) {
+})({7:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],7:[function(require,module,exports) {
+},{}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53777,12 +53777,12 @@ exports.InfoDisplay = InfoDisplay;
 module.exports = {
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "6f9fe72b-0cc1-4646-83d6-d4146d1cdb84"
+        "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
     },
 
     "picture" : {
         "frame" : false,
-        "rotating": false
+        "rotatinon": false
     }
 };
 },{}],5:[function(require,module,exports) {
@@ -53819,6 +53819,7 @@ var materialGold = new THREE.MeshPhongMaterial({
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
+
 function remapUVs(geo) {
 
     var max = void 0,
@@ -53899,6 +53900,11 @@ function makeRoundedCornerPlane() {
 
 var count = 0;
 
+var geo = makeRoundedCornerPlane(1, 1.7, 0.125);
+var mat = new THREE.MeshBasicMaterial();
+var roundedCornerPlane = new THREE.Mesh(geo, mat);
+roundedCornerPlane.material.side = THREE.DoubleSide;
+
 var ComponentPicture = function () {
     function ComponentPicture(props) {
         _classCallCheck(this, ComponentPicture);
@@ -53946,73 +53952,77 @@ var ComponentPicture = function () {
             //Init FrameMesh
 
             //Load model
-            new THREE.OBJLoader().load('models/frames/frame.obj', function (object) {
+            //new THREE.OBJLoader().load( 
 
-                var textureLoader = new THREE.TextureLoader();
-                textureLoader.crossOrigin = "Anonymous";
-                textureLoader.load(_this.meshTextures[_this.meshTexturesPointer], function (texture) {
+            //    'models/frames/frame.obj', 
 
-                    object.traverse(function (obj) {
+            //    ( object ) => {
 
-                        obj.castShadow = true;
+            var textureLoader = new THREE.TextureLoader();
+            textureLoader.crossOrigin = "Anonymous";
+            textureLoader.load(this.meshTextures[this.meshTexturesPointer], function (texture) {
 
-                        if (obj.name == 'picture') {
+                //object.traverse((obj) => { 
 
-                            obj.material.transparent = true;
-                            obj.material.opacity = 0;
+                //obj.castShadow = true
 
-                            //Canvas
-                            var geo = new THREE.PlaneGeometry(1.25, 1.7);
-                            //var mat  = materialGold
-                            var mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                            var mes = new THREE.Mesh(geo, mat);
-                            mes.material.side = THREE.DoubleSide;
-                            mes.scale.set(1.1, 1.1, 1.1);
-                            mes.position.set(0, 0.006, 0);
+                //if(obj.name=='picture') {
 
-                            mes.rotation.x = -Math.PI / 2;
+                //obj.material.transparent = true
+                //obj.material.opacity = 0
 
-                            if (config.picture.frame) _this.meshContainer.add(mes);
+                //Canvas
+                /*var geo  = new THREE.PlaneGeometry(1.25,1.7)
+                //var mat  = materialGold
+                var mat  = new THREE.MeshBasicMaterial({color:0xffffff})
+                var mes  = new THREE.Mesh( geo, mat )
+                    mes.material.side = THREE.DoubleSide
+                    mes.scale.set(1.1,1.1,1.1)
+                    mes.position.set(0,0.006,0)
+                      mes.rotation.x = - Math.PI / 2;
+                  if(config.picture.frame)    
+                this.meshContainer.add( mes )*/
 
-                            //Picture
-                            texture.wrapS = THREE.RepeatWrapping;
-                            texture.wrapT = THREE.RepeatWrapping;
+                //Picture
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
 
-                            var geo = makeRoundedCornerPlane(1, 1.7, 0.125);
-                            //var geo  = new THREE.PlaneGeometry(0.7,1)
-                            var mat = new THREE.MeshBasicMaterial();
+                var geo = makeRoundedCornerPlane(1, 1.7, 0.125);
+                var mat = new THREE.MeshBasicMaterial();
 
-                            _this.meshPicture = new THREE.Mesh(geo, mat);
-                            _this.meshPicture.material.side = THREE.DoubleSide;
-                            //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
+                _this.meshPicture = new THREE.Mesh(geo, mat);
+                _this.meshPicture.material.side = THREE.DoubleSide;
 
-                            _this.meshTexture = texture;
+                _this.meshTexture = texture;
 
-                            _this.meshPicture.material.map = _this.meshTexture;
-                            //mes.scale.set(1.5, 1.5, 1.5)
-                            //mes.position.set(0,0.007,0)
-                            //mes.rotation.x = - Math.PI / 2;
-                            _this.meshPicture.rotation.x = -Math.PI / 2;
-                            _this.meshPicture.castShadow = true;
+                _this.meshPicture.material.map = _this.meshTexture;
+                //mes.scale.set(1.5, 1.5, 1.5)
+                //mes.position.set(0,0.007,0)
+                //mes.rotation.x = - Math.PI / 2;
+                _this.meshPicture.rotation.x = -Math.PI / 2;
+                _this.meshPicture.castShadow = true;
 
-                            _this.meshContainer.add(_this.meshPicture);
-                        } else {
-                            obj.material = materialGold;
-                        }
-                    });
+                _this.meshContainer.add(_this.meshPicture);
 
-                    //Add FrameMesh to container
-                    if (config.picture.frame) _this.meshContainer.add(object);
-                },
+                //}else{
+                //    obj.material  = materialGold
+                //}
+                //})
 
-                // onProgress callback currently not supported
-                undefined,
+                //Add FrameMesh to container
+                //if(config.picture.frame)    
+                //this.meshContainer.add( object );
+            },
 
-                // onError callback
-                function (err) {
-                    console.error('An error happened.');
-                });
+            // onProgress callback currently not supported
+            undefined,
+
+            // onError callback
+            function (err) {
+                console.error('An error happened.');
             });
+
+            //} );
 
             this.meshContainer.userData.count = count;
             count++;
@@ -54049,7 +54059,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config.json":4,"three":8}],2:[function(require,module,exports) {
+},{"../config.json":4,"three":7}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -55108,6 +55118,7 @@ var picturesMeshes = void 0;
 var pictures = [];
 
 var world = void 0;
+var bodies = [];
 
 var intersectedPicture = void 0;
 
@@ -55135,32 +55146,52 @@ function fetchRecommendations() {
 												var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
 
 												imageURLs.push(url);
+
+												//console.log(url)
 									});
 
-									//Add Picture
-									var picture = new _ComponentPicture2.default({
+									var position = {
+												x: randomIntFromInterval(-5, 5),
+												y: randomIntFromInterval(10, 50),
+												z: randomIntFromInterval(-5, 5)
+									};
+
+									var rotation = {
+												x: Math.random() * 2 * Math.PI,
+												y: Math.random() * 2 * Math.PI,
+												z: Math.random() * 2 * Math.PI
+
+												//Add Picture
+									};var picture = new _ComponentPicture2.default({
 
 												images: imageURLs,
 
-												position: {
-															x: randomIntFromInterval(-5, 5),
-															y: randomIntFromInterval(0, 5),
-															z: randomIntFromInterval(-5, 5)
-												},
+												position: position,
 
-												rotation: {
-															x: Math.random() * 2 * Math.PI,
-															y: Math.random() * 2 * Math.PI,
-															z: Math.random() * 2 * Math.PI
-												},
+												rotation: rotation,
 
-												//photo: 'models/frames/me.jpg',
 												containerWireframe: false,
 												containerOpacity: 0
+
 									});
 
 									pictures.push(picture);
 									picturesMeshes.add(picture.getMesh());
+
+									var body = world.add({
+												type: 'box', // type of shape : sphere, box, cylinder 
+												size: [1, .1, 1.7], // size of shape
+												pos: [position.x, position.y, position.z], // start position in degree
+												rot: [0, 0, 0], // start rotation in degree
+												move: true, // dynamic or statique
+												density: 1,
+												friction: 1,
+												restitution: 0.2,
+												belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+												collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+									});
+
+									bodies.push(body);
 						});
 			});
 }
@@ -55175,7 +55206,7 @@ function init() {
 						worldscale: 1, // scale full world 
 						random: true, // randomize sample
 						info: false, // calculate statistic or not
-						gravity: [0, -1.8, 0]
+						gravity: [0, -2.1, 0]
 			});
 
 			document.body.style.margin = '0';
@@ -55203,7 +55234,7 @@ function init() {
 
 			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
-			var geometry = new THREE.PlaneBufferGeometry(10, 10);
+			var geometry = new THREE.BoxBufferGeometry(100, 1, 100);
 			var material = new THREE.MeshStandardMaterial({
 						//color: 0x0000ff,		
 						color: 0xeeeeee,
@@ -55217,13 +55248,13 @@ function init() {
 
 			var body = world.add({
 						type: 'box', // type of shape : sphere, box, cylinder 
-						size: [10, 0.00001, 10], // size of shape
+						size: [1000, 1, 1000], // size of shape
 						pos: [0, 0, 0], // start position in degree
 						rot: [0, 0, 0], // start rotation in degree
 						move: false, // dynamic or statique
 						density: 1,
-						friction: 0.2,
-						restitution: 0.2,
+						friction: 1,
+						restitution: 1,
 						belongsTo: 1, // The bits of the collision groups to which the shape belongs.
 						collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 			});
@@ -55299,7 +55330,9 @@ function init() {
 
 			raycaster = new THREE.Raycaster();
 
-			//
+			setInterval(function () {
+						fetchRecommendations();
+			}, 2000);
 
 			fetchRecommendations();
 
@@ -55422,7 +55455,10 @@ function render() {
    
    })*/
 
-			pictures.forEach(function (picture) {
+			pictures.map(function (picture, index) {
+
+						picture.getMesh().position.copy(bodies[index].getPosition());
+						picture.getMesh().quaternion.copy(bodies[index].getQuaternion());
 
 						if (!config.picture.rotation) return;
 						picture.getMesh().rotation.x += 0.0005;
@@ -55439,7 +55475,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":8,"oimo":7,"./config.json":4,"./components/ComponentPicture":5}],13:[function(require,module,exports) {
+},{"three":7,"oimo":8,"./config.json":4,"./components/ComponentPicture":5}],9:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55468,7 +55504,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '50140' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53933' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55609,5 +55645,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[13,2], null)
+},{}]},{},[9,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

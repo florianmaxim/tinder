@@ -17,6 +17,7 @@ const materialGold = new THREE.MeshPhongMaterial( {
     //combine: THREE.MixOperation,
     reflectivity: .25
 });
+
 function remapUVs(geo) {
 
     let max, min, offset, size, v1, v2, v3;
@@ -88,6 +89,12 @@ function makeRoundedCornerPlane(width=1, height=1.7, radius=1, smooth=16){
 let count = 0
 
 
+
+let geo  = makeRoundedCornerPlane(1, 1.7, 0.125)
+let mat  = new THREE.MeshBasicMaterial()
+const roundedCornerPlane = new THREE.Mesh( geo, mat )
+roundedCornerPlane.material.side = THREE.DoubleSide
+
 export default class ComponentPicture {
 
     constructor(props) {
@@ -142,11 +149,11 @@ export default class ComponentPicture {
         //Init FrameMesh
 
         //Load model
-        new THREE.OBJLoader().load( 
+        //new THREE.OBJLoader().load( 
             
-            'models/frames/frame.obj', 
+        //    'models/frames/frame.obj', 
             
-            ( object ) => {
+        //    ( object ) => {
 
             const textureLoader = new THREE.TextureLoader()
             textureLoader.crossOrigin = "Anonymous"
@@ -156,17 +163,17 @@ export default class ComponentPicture {
 
                 ( texture ) => {
 				
-				    object.traverse((obj) => { 
+				    //object.traverse((obj) => { 
 
-					    obj.castShadow = true
+					    //obj.castShadow = true
 
-                        if(obj.name=='picture') {
+                        //if(obj.name=='picture') {
 
-                            obj.material.transparent = true
-                            obj.material.opacity = 0
+                            //obj.material.transparent = true
+                            //obj.material.opacity = 0
 
                             //Canvas
-                            var geo  = new THREE.PlaneGeometry(1.25,1.7)
+                            /*var geo  = new THREE.PlaneGeometry(1.25,1.7)
                             //var mat  = materialGold
                             var mat  = new THREE.MeshBasicMaterial({color:0xffffff})
                             var mes  = new THREE.Mesh( geo, mat )
@@ -177,19 +184,17 @@ export default class ComponentPicture {
                                 mes.rotation.x = - Math.PI / 2;
 
                             if(config.picture.frame)    
-                            this.meshContainer.add( mes )
+                            this.meshContainer.add( mes )*/
 
                             //Picture
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
 
                             var geo  = makeRoundedCornerPlane(1, 1.7, 0.125)
-                            //var geo  = new THREE.PlaneGeometry(0.7,1)
                             var mat  = new THREE.MeshBasicMaterial()
                             
                             this.meshPicture  = new THREE.Mesh( geo, mat )
                             this.meshPicture.material.side = THREE.DoubleSide
-                                //mes.material.texture.wrapS = mes.material.texture.wrapT = THREE.RepeatWrapping;
                             
                             this.meshTexture = texture
                             
@@ -202,14 +207,14 @@ export default class ComponentPicture {
 
                             this.meshContainer.add( this.meshPicture )
                             
-                        }else{
-                            obj.material  = materialGold
-                        }
-                    })
+                        //}else{
+                        //    obj.material  = materialGold
+                        //}
+                    //})
             
                     //Add FrameMesh to container
-                    if(config.picture.frame)    
-                    this.meshContainer.add( object );
+                    //if(config.picture.frame)    
+                    //this.meshContainer.add( object );
 
                 },
 
@@ -220,10 +225,11 @@ export default class ComponentPicture {
                 function ( err ) {
                     console.error( 'An error happened.' );
                 }
+            
             );
         
 
-        } );
+        //} );
 
         this.meshContainer.userData.count = count
         count++
