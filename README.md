@@ -1,4 +1,4 @@
-# <p align="center">🔥 TinderXR</p>
+# <p align="center">🔥 TinderVR</p>
 
 ## <p align="center">A Spatial Tinder Implementation</p>
 
