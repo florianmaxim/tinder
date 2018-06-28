@@ -940,7 +940,7 @@ var WEBVR = {
 			button.style.display = '';
 
 			button.style.cursor = 'pointer';
-			button.style.left = 'calc(50% - 50px)';
+			button.style.left = 'calc(50% - 150px)';
 			button.style.width = '100px';
 
 			button.textContent = 'ENTER VR';
@@ -1044,7 +1044,7 @@ var WEBVR = {
 			element.style.padding = '12px 6px';
 			element.style.border = '1px solid #fff';
 			element.style.borderRadius = '4px';
-			element.style.background = 'transparent';
+			element.style.background = 'black';
 			element.style.color = '#fff';
 			element.style.font = 'normal 13px sans-serif';
 			element.style.textAlign = 'center';
@@ -1175,7 +1175,9 @@ var raycaster, intersected = [];
 var tempMatrix = new THREE.Matrix4();
 
 let picturesMeshes;
+
 let pictures = [];
+let picturesGrabbed = [];
 
 let world;
 let bodies = [];
@@ -1196,17 +1198,25 @@ function fetchRecommendations() {
 
 	if(config.simulation){
 
+			const size = {
+				x: 1,
+				y: 1.7,
+				z: .1
+			}
+
 			const position = {
 				x: randomIntFromInterval(-.5,.5),
 				y: randomIntFromInterval(5, 10),
 				z: randomIntFromInterval(-.5,.5)
 			}
+
 			const rotation = {
 				x:Math.random() * 2 * Math.PI,
 				y:Math.random() * 2 * Math.PI,
 				z:Math.random() * 2 * Math.PI
 			}
-			const factor = Math.random()
+
+			const factor = config.picture.fixedScale!==false?config.picture.fixedScale:Math.random()
 			const scale = {
 				x:factor,
 				y:factor,
@@ -1216,23 +1226,27 @@ function fetchRecommendations() {
 			//Add Picture
 			const picture = new Picture({
 
-				images: ['models/textures/me.jpg'],
+				size: size,
 
 				position: position,
 				rotation: rotation,
 				scale: scale,
 
-				containerWireframe: false,
-				containerOpacity: .25
+				containerWireframe: config.picture.containerWireframe,
+				containerOpacity: config.picture.containerOpacity,
+				containerColor: 0xff0000,
+				
+				images: ['models/textures/me.jpg']
 
 			})
 
 			pictures.push(picture)
+			picture.getMesh().userData._index = pictures.indexOf(picture)
 			picturesMeshes.add(picture.getMesh())
 
 			var body = world.add({ 
 				type:'box', // type of shape : sphere, box, cylinder 
-				size:[1*scale.x,.1*scale.y,1.7*scale.z], // size of shape
+				size:[size.x*scale.x,size.y*scale.y,size.z*scale.z], // size of shape
 				pos:[position.x,position.y,position.z], // start position in degree
 				rot:[0,0,0], // start rotation in degree
 				move:true, // dynamic or statique
@@ -1305,12 +1319,14 @@ function fetchRecommendations() {
 				rotation: rotation,
 				scale: scale,
 
-				containerWireframe: false,
-				containerOpacity: .25
+				containerWireframe: config.picture.containerWireframe,
+				containerOpacity: config.picture.containerOpacity
 
 			})
 
 			pictures.push(picture)
+			
+			picture.getMesh().userData._index = pictures.indexOf(picture)
 			picturesMeshes.add(picture.getMesh())
 
 			var body = world.add({ 
@@ -1363,29 +1379,32 @@ function init() {
 
 	scene.fog = new THREE.Fog(0xffffff, 0, 50)
 
-	var size = 1000;
-	var divisions = 1000;
+	
 
-	var gridHelper = new THREE.GridHelper( size, divisions );
-	scene.add( gridHelper );
+	if(config.space.grid){
+		var size = 1000;
+		var divisions = 1000;
+		scene.add(new THREE.GridHelper( size, divisions ));
+	}
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
-	var geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000 );
+	var geometry = new THREE.PlaneGeometry( 10000, 10000 );
 	var material = new THREE.MeshStandardMaterial( {
 		//color: 0x0000ff,		
-		color: 0xeeeeee,
+		color: 0xa0a0a0,
 		roughness: 1.0,
-		metalness: 0.0
+		metalness: 0.0,
+		side: THREE.DoubleSide
 	} );
 	var floor = new THREE.Mesh( geometry, material );
-	floor.rotation.x = - Math.PI / 2;
+	floor.rotation.x =  Math.PI / 2;
 	floor.receiveShadow = true;
 	scene.add( floor );
 
 	var body = world.add({ 
 		type:'box', // type of shape : sphere, box, cylinder 
-		size:[1000, 1,1000], // size of shape
+		size:[1000, 0.0001,1000], // size of shape
 		pos: [0,0,0], // start position in degree
 		rot: [0,0,0], // start rotation in degree
 		move:false, // dynamic or statique
@@ -1396,18 +1415,20 @@ function init() {
 		collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 	});
 
-	scene.add( new THREE.AmbientLight( 0xffffff) );
+	//scene.add( new THREE.AmbientLight( 0xffffff) );
 
-	scene.add( new THREE.HemisphereLight( 0x808080, 0x606060, 0.5 ) );
+	var light = new THREE.HemisphereLight( 0x808080, 0x606060, 1 )
+	scene.add( light );
 
-	var light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 2, 1, 0 );
-	//light.castShadow = true;
-	light.shadow.camera.top = 2;
-	light.shadow.camera.bottom = -2;
-	light.shadow.camera.right = 2;
-	light.shadow.camera.left = -2;
-	//light.shadow.mapSize.set( 4096, 4096 );
+	var light = new THREE.DirectionalLight( 0xffffff, 5 );
+	light.castShadow = true;
+
+	light.position.set( 2, 5, 0 );
+	//light.shadow.camera.top = 2;
+	//light.shadow.camera.bottom = -2;
+	//light.shadow.camera.right = 2;
+	//light.shadow.camera.left = -2;
+	light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
 
 	picturesMeshes = new THREE.Group();
@@ -1418,7 +1439,7 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	//renderer.shadowMap.enabled = true;
+	renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
 	
 	container.appendChild( renderer.domElement );
@@ -1469,9 +1490,9 @@ function init() {
 	raycaster = new THREE.Raycaster();
 
 
+	if(config.fetch.interval!==false)
 	setInterval(() => {
-	fetchRecommendations();
-
+		fetchRecommendations();
 	}, config.fetch.interval)
 
 	fetchRecommendations();
@@ -1494,7 +1515,7 @@ function onTriggerDown( event ) {
 
 	var controller = event.target;
 
-	var intersections = getIntersections( controller );
+	var intersections = getIntersectionsOfController( controller );
 
 	if ( intersections.length > 0 ) {
 
@@ -1508,7 +1529,7 @@ function onTriggerDown( event ) {
 		
 		object.material.emissive.b = 1;
 
-		//Add selected object to controller
+		//Apply selected object to controller
 		controller.add( object );
 
 		controller.userData.selected = object;
@@ -1531,8 +1552,13 @@ function onTriggerUp( event ) {
 		
 		object.material.emissive.b = 0;
 
-
+		//Apply previously selected object back to the meshes group 
+		//that is influenced by its rigid bodies
 		picturesMeshes.add( object );
+
+		//Update it's rigid bodies
+		bodies[ object.userData._index ].resetPosition(object.position.x, object.position.y, object.position.z)
+		bodies[ object.userData._index ].resetQuaternion(object.quaternion)
 
 		controller.userData.selected = undefined;
 
@@ -1564,13 +1590,13 @@ function intersectObjects( controller ) {
 		var intersection = intersections[ 0 ];
 		var object = intersection.object;
 
-		object.material.emissive.r = 1;
+		//object.material.color.setHex(0xff0000)
+
 		intersected.push( object );
 
 		line.scale.z = intersection.distance;
 
 		object.userData.intersected = true;
-		console.log(object.userData.intersected)
 
 	} else {
 
@@ -1586,10 +1612,9 @@ function cleanIntersected() {
 
 		var object = intersected.pop();
 
-		object.material.emissive.r = 0;
+		//object.material.color.setHex(0xffffff)
 
 		object.userData.intersected = false;
-		console.log(object.userData.intersected)
 
 	}
 
@@ -1613,29 +1638,16 @@ function render() {
 
 	cleanIntersected();
 
-	if(!triggerDown)
 	world.step();
 
 	pictures.map((picture, index) => {
 		
 		const pictureMesh = picture.getMesh()
 
-		if(pictureMesh.userData.intersected===true){
+		if(controller1.userData.selected == pictureMesh) return
 
-			bodies[ index ].resetPosition(pictureMesh.position.x, pictureMesh.position.y, pictureMesh.position.z)
-			bodies[ index ].resetRotation(pictureMesh.rotation.x, pictureMesh.rotation.y, pictureMesh.rotation.z)
-		
-		}else{
-
-			if(triggerDown){
-
-			}else{
-
-				pictureMesh.position.copy( bodies[ index ].getPosition() );
-				pictureMesh.quaternion.copy( bodies[ index ].getQuaternion() );
-			}
-
-		}
+		pictureMesh.position.copy( bodies[ index ].getPosition() );
+		pictureMesh.quaternion.copy( bodies[ index ].getQuaternion() );
 
 	})
 

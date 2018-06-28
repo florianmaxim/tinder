@@ -53775,22 +53775,38 @@ exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
 },{}],4:[function(require,module,exports) {
 module.exports = {
-    "debug" : false,
+    
     "simulation": true,
+
+    "debug" : false,
 
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
+        "TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650",
+
+        "tinder" : {
+            "ACCESS_TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650"
+        }
+    },
+
+    "space" : {
+        "grid" : false
     },
 
     "picture" : {
         "frame" : false,
-        "rotatinon": false
+        "rotatinon": false,
+
+        "fixedScale" : false,
+
+        "containerOpacity" : 0.25,
+        "containerWireframe" : false,
+        "containerColor" : "0xff0000"
     },
 
     "fetch": {
-        "ItemsPerCall" : 3,
-        "interval" : 2000
+        "ItemsPerCall" : 25,
+        "interval" : 1000
     }
 };
 },{}],5:[function(require,module,exports) {
@@ -53927,11 +53943,6 @@ function makeRoundedCornerPlane() {
 
 var count = 0;
 
-var geo = makeRoundedCornerPlane(1, 1.7, 0.125);
-var mat = new THREE.MeshBasicMaterial();
-var roundedCornerPlane = new THREE.Mesh(geo, mat);
-roundedCornerPlane.material.side = THREE.DoubleSide;
-
 var ComponentPicture = function () {
     function ComponentPicture(props) {
         _classCallCheck(this, ComponentPicture);
@@ -53958,16 +53969,19 @@ var ComponentPicture = function () {
             this.meshTextures = props.images !== undefined ? props.images : [];
 
             //Init ContainerMesh
-            var geometry = new THREE.BoxBufferGeometry(1, .1, 1.7);
+            var geometry = new THREE.BoxGeometry(props.size.x, props.size.y, props.size.z);
             var material = new THREE.MeshStandardMaterial({
-                color: Math.random() * 0x0000ff,
+                color: props.containerColor !== undefined ? props.containerColor : 0x000000,
                 roughness: 0.7,
                 metalness: 0.0,
                 transparent: true,
                 opacity: props.containerOpacity !== undefined ? props.containerOpacity : 0,
                 wireframe: props.containerWireframe !== undefined ? props.containerWireframe : true
             });
+
             this.meshContainer = new THREE.Mesh(geometry, material);
+            this.meshContainer.castShadow = true;
+            this.meshContainer.receiveShadow = true;
 
             //Apply position if given
             this.meshContainer.position.set(props.position.x, props.position.y, props.position.z);
@@ -54025,10 +54039,8 @@ var ComponentPicture = function () {
                 _this.meshTexture = texture;
 
                 _this.meshPicture.material.map = _this.meshTexture;
-                _this.meshPicture.scale.set(.75, .75, .75);
-                //mes.position.set(0,0.007,0)
-                //mes.rotation.x = - Math.PI / 2;
-                _this.meshPicture.rotation.x = -Math.PI / 2;
+                _this.meshPicture.scale.set(0.8, 0.87, 1);
+
                 _this.meshPicture.castShadow = true;
 
                 _this.meshContainer.add(_this.meshPicture);
@@ -54926,7 +54938,7 @@ var WEBVR = {
 									button.style.display = '';
 
 									button.style.cursor = 'pointer';
-									button.style.left = 'calc(50% - 50px)';
+									button.style.left = 'calc(50% - 150px)';
 									button.style.width = '100px';
 
 									button.textContent = 'ENTER VR';
@@ -55029,7 +55041,7 @@ var WEBVR = {
 									element.style.padding = '12px 6px';
 									element.style.border = '1px solid #fff';
 									element.style.borderRadius = '4px';
-									element.style.background = 'transparent';
+									element.style.background = 'black';
 									element.style.color = '#fff';
 									element.style.font = 'normal 13px sans-serif';
 									element.style.textAlign = 'center';
@@ -55146,7 +55158,9 @@ var raycaster,
 var tempMatrix = new THREE.Matrix4();
 
 var picturesMeshes = void 0;
+
 var pictures = [];
+var picturesGrabbed = [];
 
 var world = void 0;
 var bodies = [];
@@ -55167,17 +55181,25 @@ function fetchRecommendations() {
 
 			if (config.simulation) {
 
+						var size = {
+									x: 1,
+									y: 1.7,
+									z: .1
+						};
+
 						var position = {
 									x: randomIntFromInterval(-.5, .5),
 									y: randomIntFromInterval(5, 10),
 									z: randomIntFromInterval(-.5, .5)
 						};
+
 						var rotation = {
 									x: Math.random() * 2 * Math.PI,
 									y: Math.random() * 2 * Math.PI,
 									z: Math.random() * 2 * Math.PI
 						};
-						var factor = Math.random();
+
+						var factor = config.picture.fixedScale !== false ? config.picture.fixedScale : Math.random();
 						var scale = {
 									x: factor,
 									y: factor,
@@ -55186,23 +55208,27 @@ function fetchRecommendations() {
 									//Add Picture
 						};var picture = new _ComponentPicture2.default({
 
-									images: ['models/textures/me.jpg'],
+									size: size,
 
 									position: position,
 									rotation: rotation,
 									scale: scale,
 
-									containerWireframe: false,
-									containerOpacity: .25
+									containerWireframe: config.picture.containerWireframe,
+									containerOpacity: config.picture.containerOpacity,
+									containerColor: 0xff0000,
+
+									images: ['models/textures/me.jpg']
 
 						});
 
 						pictures.push(picture);
+						picture.getMesh().userData._index = pictures.indexOf(picture);
 						picturesMeshes.add(picture.getMesh());
 
 						var body = world.add({
 									type: 'box', // type of shape : sphere, box, cylinder 
-									size: [1 * scale.x, .1 * scale.y, 1.7 * scale.z], // size of shape
+									size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
 									pos: [position.x, position.y, position.z], // start position in degree
 									rot: [0, 0, 0], // start rotation in degree
 									move: true, // dynamic or statique
@@ -55273,12 +55299,14 @@ function fetchRecommendations() {
 												rotation: rotation,
 												scale: scale,
 
-												containerWireframe: false,
-												containerOpacity: .25
+												containerWireframe: config.picture.containerWireframe,
+												containerOpacity: config.picture.containerOpacity
 
 									});
 
 									pictures.push(picture);
+
+									picture.getMesh().userData._index = pictures.indexOf(picture);
 									picturesMeshes.add(picture.getMesh());
 
 									var body = world.add({
@@ -55329,29 +55357,30 @@ function init() {
 
 			scene.fog = new THREE.Fog(0xffffff, 0, 50);
 
-			var size = 1000;
-			var divisions = 1000;
-
-			var gridHelper = new THREE.GridHelper(size, divisions);
-			scene.add(gridHelper);
+			if (config.space.grid) {
+						var size = 1000;
+						var divisions = 1000;
+						scene.add(new THREE.GridHelper(size, divisions));
+			}
 
 			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
-			var geometry = new THREE.BoxBufferGeometry(1000, 1, 1000);
+			var geometry = new THREE.PlaneGeometry(10000, 10000);
 			var material = new THREE.MeshStandardMaterial({
 						//color: 0x0000ff,		
-						color: 0xeeeeee,
+						color: 0xa0a0a0,
 						roughness: 1.0,
-						metalness: 0.0
+						metalness: 0.0,
+						side: THREE.DoubleSide
 			});
 			var floor = new THREE.Mesh(geometry, material);
-			floor.rotation.x = -Math.PI / 2;
+			floor.rotation.x = Math.PI / 2;
 			floor.receiveShadow = true;
 			scene.add(floor);
 
 			var body = world.add({
 						type: 'box', // type of shape : sphere, box, cylinder 
-						size: [1000, 1, 1000], // size of shape
+						size: [1000, 0.0001, 1000], // size of shape
 						pos: [0, 0, 0], // start position in degree
 						rot: [0, 0, 0], // start rotation in degree
 						move: false, // dynamic or statique
@@ -55362,18 +55391,20 @@ function init() {
 						collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 			});
 
-			scene.add(new THREE.AmbientLight(0xffffff));
+			//scene.add( new THREE.AmbientLight( 0xffffff) );
 
-			scene.add(new THREE.HemisphereLight(0x808080, 0x606060, 0.5));
+			var light = new THREE.HemisphereLight(0x808080, 0x606060, 1);
+			scene.add(light);
 
-			var light = new THREE.DirectionalLight(0xffffff);
-			light.position.set(2, 1, 0);
-			//light.castShadow = true;
-			light.shadow.camera.top = 2;
-			light.shadow.camera.bottom = -2;
-			light.shadow.camera.right = 2;
-			light.shadow.camera.left = -2;
-			//light.shadow.mapSize.set( 4096, 4096 );
+			var light = new THREE.DirectionalLight(0xffffff, 5);
+			light.castShadow = true;
+
+			light.position.set(2, 5, 0);
+			//light.shadow.camera.top = 2;
+			//light.shadow.camera.bottom = -2;
+			//light.shadow.camera.right = 2;
+			//light.shadow.camera.left = -2;
+			light.shadow.mapSize.set(4096, 4096);
 			scene.add(light);
 
 			picturesMeshes = new THREE.Group();
@@ -55384,7 +55415,7 @@ function init() {
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
-			//renderer.shadowMap.enabled = true;
+			renderer.shadowMap.enabled = true;
 			renderer.vr.enabled = true;
 
 			container.appendChild(renderer.domElement);
@@ -55433,7 +55464,7 @@ function init() {
 
 			raycaster = new THREE.Raycaster();
 
-			setInterval(function () {
+			if (config.fetch.interval !== false) setInterval(function () {
 						fetchRecommendations();
 			}, config.fetch.interval);
 
@@ -55456,7 +55487,7 @@ function onTriggerDown(event) {
 
 			var controller = event.target;
 
-			var intersections = getIntersections(controller);
+			var intersections = getIntersectionsOfController(controller);
 
 			if (intersections.length > 0) {
 
@@ -55470,7 +55501,7 @@ function onTriggerDown(event) {
 
 						object.material.emissive.b = 1;
 
-						//Add selected object to controller
+						//Apply selected object to controller
 						controller.add(object);
 
 						controller.userData.selected = object;
@@ -55491,13 +55522,19 @@ function onTriggerUp(event) {
 
 						object.material.emissive.b = 0;
 
+						//Apply previously selected object back to the meshes group 
+						//that is influenced by its rigid bodies
 						picturesMeshes.add(object);
+
+						//Update it's rigid bodies
+						bodies[object.userData._index].resetPosition(object.position.x, object.position.y, object.position.z);
+						bodies[object.userData._index].resetQuaternion(object.quaternion);
 
 						controller.userData.selected = undefined;
 			}
 }
 
-function getIntersections(controller) {
+function getIntersectionsOfController(controller) {
 
 			tempMatrix.identity().extractRotation(controller.matrixWorld);
 
@@ -55513,21 +55550,20 @@ function intersectObjects(controller) {
 			if (controller.userData.selected !== undefined) return;
 
 			var line = controller.getObjectByName('line');
-			var intersections = getIntersections(controller);
+			var intersections = getIntersectionsOfController(controller);
 
 			if (intersections.length > 0) {
 
 						var intersection = intersections[0];
-
 						var object = intersection.object;
 
-						object.material.emissive.r = 1;
+						//object.material.color.setHex(0xff0000)
+
 						intersected.push(object);
 
 						line.scale.z = intersection.distance;
 
 						object.userData.intersected = true;
-						console.log(object.userData.intersected);
 			} else {
 
 						line.scale.z = 5;
@@ -55540,10 +55576,9 @@ function cleanIntersected() {
 
 						var object = intersected.pop();
 
-						object.material.emissive.r = 0;
+						//object.material.color.setHex(0xffffff)
 
 						object.userData.intersected = false;
-						console.log(object.userData.intersected);
 			}
 }
 
@@ -55556,37 +55591,29 @@ function animate() {
 
 function render() {
 
-			if (!triggerDown) world.step();
+			controller1.update();
+			controller2.update();
+
+			intersectObjects(controller1);
+			intersectObjects(controller2);
+
+			cleanIntersected();
+
+			world.step();
 
 			pictures.map(function (picture, index) {
 
 						var pictureMesh = picture.getMesh();
 
-						if (pictureMesh.userData.intersected === true) {
+						if (controller1.userData.selected == pictureMesh) return;
 
-									bodies[index].resetPosition(pictureMesh.position.x, pictureMesh.position.y, pictureMesh.position.z);
-									bodies[index].resetRotation(pictureMesh.rotation.x, pictureMesh.rotation.y, pictureMesh.rotation.z);
-						} else {
-
-									if (triggerDown) {} else {
-
-												pictureMesh.position.copy(bodies[index].getPosition());
-												pictureMesh.quaternion.copy(bodies[index].getQuaternion());
-									}
-						}
+						pictureMesh.position.copy(bodies[index].getPosition());
+						pictureMesh.quaternion.copy(bodies[index].getQuaternion());
 			});
-
-			controller1.update();
-			controller2.update();
-
-			cleanIntersected();
-
-			intersectObjects(controller1);
-			intersectObjects(controller2);
 
 			renderer.render(scene, camera);
 }
-},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],17:[function(require,module,exports) {
+},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],28:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55615,7 +55642,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '52713' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53872' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55756,5 +55783,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[17,2], null)
+},{}]},{},[28,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

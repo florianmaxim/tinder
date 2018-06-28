@@ -1,19 +1,35 @@
 {
-    "debug" : false,
+    
     "simulation": true,
+
+    "debug" : false,
 
     "API" : {
         "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "bf12049a-4db2-4c67-a2e9-506d6b01c61a"
+        "TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650",
+
+        "tinder" : {
+            "ACCESS_TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650"
+        }
+    },
+
+    "space" : {
+        "grid" : false
     },
 
     "picture" : {
         "frame" : false,
-        "rotatinon": false
+        "rotatinon": false,
+
+        "fixedScale" : false,
+
+        "containerOpacity" : 0.25,
+        "containerWireframe" : false,
+        "containerColor" : "0xff0000"
     },
 
     "fetch": {
-        "ItemsPerCall" : 3,
-        "interval" : 2000
+        "ItemsPerCall" : 25,
+        "interval" : 1000
     }
 }

@@ -88,13 +88,6 @@ function makeRoundedCornerPlane(width=1, height=1.7, radius=1, smooth=16){
 
 let count = 0
 
-
-
-let geo  = makeRoundedCornerPlane(1, 1.7, 0.125)
-let mat  = new THREE.MeshBasicMaterial()
-const roundedCornerPlane = new THREE.Mesh( geo, mat )
-roundedCornerPlane.material.side = THREE.DoubleSide
-
 export default class ComponentPicture {
 
     constructor(props) {
@@ -120,16 +113,20 @@ export default class ComponentPicture {
         this.meshTextures = props.images!==undefined?props.images:[]
 
         //Init ContainerMesh
-        const geometry = new THREE.BoxBufferGeometry(1,.1,1.7)
-        const material = new THREE.MeshStandardMaterial({
-            color: Math.random() * 0x0000ff,
+        const geometry = new THREE.BoxGeometry(props.size.x,props.size.y,props.size.z)
+        var material = new THREE.MeshStandardMaterial({
+            color: props.containerColor!==undefined?props.containerColor:0x000000,
             roughness: 0.7,
             metalness: 0.0,
             transparent: true,
             opacity: props.containerOpacity!==undefined?props.containerOpacity:0,
             wireframe: props.containerWireframe!==undefined?props.containerWireframe:true
         });
+
         this.meshContainer = new THREE.Mesh( geometry, material );
+        this.meshContainer.castShadow = true;
+        this.meshContainer.receiveShadow = true;
+
 
         //Apply position if given
         this.meshContainer.position.set(
@@ -149,7 +146,7 @@ export default class ComponentPicture {
          this.meshContainer.scale.set(
             props.scale.x,
             props.scale.y,
-            props.scale.z      
+            props.scale.z     
         )
 
         //Init FrameMesh
@@ -205,10 +202,8 @@ export default class ComponentPicture {
                             this.meshTexture = texture
                             
                             this.meshPicture.material.map = this.meshTexture
-                            this.meshPicture.scale.set(.75,.75,.75)
-                                //mes.position.set(0,0.007,0)
-                                //mes.rotation.x = - Math.PI / 2;
-                            this.meshPicture.rotation.x = - Math.PI / 2;
+                            this.meshPicture.scale.set(0.8,0.87,1)
+
                             this.meshPicture.castShadow = true
 
                             this.meshContainer.add( this.meshPicture )
