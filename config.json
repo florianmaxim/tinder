@@ -1,6 +1,6 @@
 {
     
-    "simulation": true,
+    "simulation": false,
 
     "debug" : false,
 
@@ -29,7 +29,7 @@
     },
 
     "fetch": {
-        "ItemsPerCall" : 25,
-        "interval" : 1000
+        "ItemsPerCall" : 10,
+        "interval" : 5000
     }
 }

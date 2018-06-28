@@ -53776,7 +53776,7 @@ exports.InfoDisplay = InfoDisplay;
 },{}],4:[function(require,module,exports) {
 module.exports = {
     
-    "simulation": true,
+    "simulation": false,
 
     "debug" : false,
 
@@ -53805,8 +53805,8 @@ module.exports = {
     },
 
     "fetch": {
-        "ItemsPerCall" : 25,
-        "interval" : 1000
+        "ItemsPerCall" : 10,
+        "interval" : 5000
     }
 };
 },{}],5:[function(require,module,exports) {
@@ -55272,6 +55272,12 @@ function fetchRecommendations() {
 												(0, _helpers.log)(url);
 									});
 
+									var size = {
+												x: 1,
+												y: 1.7,
+												z: .1
+									};
+
 									var position = {
 												x: randomIntFromInterval(-.5, .5),
 												y: randomIntFromInterval(10, 50),
@@ -55295,12 +55301,15 @@ function fetchRecommendations() {
 
 												images: imageURLs,
 
+												size: size,
+
 												position: position,
 												rotation: rotation,
 												scale: scale,
 
 												containerWireframe: config.picture.containerWireframe,
-												containerOpacity: config.picture.containerOpacity
+												containerOpacity: config.picture.containerOpacity,
+												containerColor: 0xff0000
 
 									});
 
@@ -55311,7 +55320,7 @@ function fetchRecommendations() {
 
 									var body = world.add({
 												type: 'box', // type of shape : sphere, box, cylinder 
-												size: [1 * scale.x, .1 * scale.y, 1.7 * scale.z], // size of shape
+												size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
 												pos: [position.x, position.y, position.z], // start position in degree
 												rot: [0, 0, 0], // start rotation in degree
 												move: true, // dynamic or statique
@@ -55613,7 +55622,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],28:[function(require,module,exports) {
+},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],29:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55783,5 +55792,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[28,2], null)
+},{}]},{},[29,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

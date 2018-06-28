@@ -1291,6 +1291,12 @@ function fetchRecommendations() {
 
 			})
 
+			const size = {
+				x: 1,
+				y: 1.7,
+				z: .1
+			}
+
 			const position = {
 				x: randomIntFromInterval(-.5,.5),
 				y: randomIntFromInterval(10,50),
@@ -1315,12 +1321,15 @@ function fetchRecommendations() {
 
 				images: imageURLs,
 
+				size: size,
+
 				position: position,
 				rotation: rotation,
 				scale: scale,
 
 				containerWireframe: config.picture.containerWireframe,
-				containerOpacity: config.picture.containerOpacity
+				containerOpacity: config.picture.containerOpacity,
+				containerColor: 0xff0000,
 
 			})
 
@@ -1331,7 +1340,7 @@ function fetchRecommendations() {
 
 			var body = world.add({ 
 				type:'box', // type of shape : sphere, box, cylinder 
-				size:[1*scale.x,.1*scale.y,1.7*scale.z], // size of shape
+				size:[size.x*scale.x,size.y*scale.y,size.z*scale.z], // size of shape
 				pos:[position.x,position.y,position.z], // start position in degree
 				rot:[0,0,0], // start rotation in degree
 				move:true, // dynamic or statique
