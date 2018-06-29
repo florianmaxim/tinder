@@ -16,10 +16,8 @@ Verteile deine Matches ueber den...
 
 - PHOTO VON TAB MIT BRILLE 
 
-# Konzept
+# Stichpunkte
 
-Fuer die virtuelle Erfahrung muss sich vorab am Computer in den eigenen Tinder Account eingeloggt werden. Nach dem Aufsetzen der VR-Brille finden wir und in einem virtuellen
-white cube wieder. Durch Koerperbewegung (Ausbreiten der Arme) wird die Interaktion mit der Experience gestartet. 
 
 - Interaktion mit den inder daten auf einer koerperlichen Ebene
 - Eine Dreiminensionalisiserung koerperliche raemliche Erfahung
@@ -37,9 +35,19 @@ white cube wieder. Durch Koerperbewegung (Ausbreiten der Arme) wird die Interakt
 - Wirkung des Zweidimensionalitaet eines Fotos im dreidimensionalen Medium
 - Illusion der Erhabenheit ueber die Person aufgrund der gerigen Groesse wird gebrochen, dadurch dass die hier dargestellten personen viel goesser sind
 - !!! Liniaritat die eigentlich Fiktion ist wird in der gleichzeitigen Anwesenheit der Individuen wieder erfahrbar gemacht. !!!
+- Gamification beim Dating
+- Die kleinen DInger in der Kiste werden zu grossen gruseligen eigenstaendigen Artefakten vor mir
 
-Dann "geht man rein". 
+# Konzept
 
+NEU:
+(Deskriptiv)
+Fuer die virtuelle Erfahrung muss sich vorab am Computer in den eigenen Tinder Account eingeloggt werden. Dann "geht man rein". Nach dem Aufsetzen der VR-Brille finden wir und in einem virtuellen white cube wieder. Wir befinden uns im Zentrum der pulsierenden Suchwellen der Tinder app. Vor uns eine Text mit der Aaufforderung: "There is no one around you. Open your arms to see more people.". Durch Koerperbewegung (Ausbreiten der Arme) wird die Interaktion mit der Experience gestartet.
+Es beginnen Karten mit potentiellen Personen von der Decke zu fallen. Diese Karten haben das selbe Format wie in der App. (1:1.7). Die Karten koennen gegriffen, Bewegegt, angeschaut und wieder weggelegt werden. Kontinuierlich fallen weitere Karten mit potentiellen Matches von der Decke. Bei Gefallen kann eine Karte gekuesst werden werden. Dislike geht nicht. Ist es kein Match faellt die Karte durch meinen nicht vorhandenen Koerper hindurch. Hat eine Person mich vorher auch geliked werden alle anderen Karten in Herzem zum Himmel geschossen. Es erscheint der Screen "You matched with XXX. x minutes ago. [Bild] "Send a message before your battery dies".
+Es kommt keine Nachricht "Die Experience ist vorbei" oder so.
+In der App kann jetzt mit der Person gechattet werden.
+
+ALT:
 Wir befinden und in einem leeren white space. wir wissen nicht was zu tun (immernoch das neue Medium - immer erstmal mal herausfinden wie es zu benutzen ist).
 Die beiden Controller werden zusammengehalten (oder ueber dem Kopf gehalten) und 
 eine Sphere baut sich um einen herum auf, pulsiert organisch und wird dann letztendlich so gross, dass er in der Ferne verschwindet.
