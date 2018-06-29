@@ -37,13 +37,20 @@ Verteile deine Matches ueber den...
 - !!! Liniaritat die eigentlich Fiktion ist wird in der gleichzeitigen Anwesenheit der Individuen wieder erfahrbar gemacht. !!!
 - Gamification beim Dating
 - Die kleinen DInger in der Kiste werden zu grossen gruseligen eigenstaendigen Artefakten vor mir
+- Dreidimensionale Kartentricks, poker 
+- die likes sind in der warteschleife,
+- die anwendungen muessen selbst erfahren werden, oder sollen sie erklaert werden
+- The touch,
+- simulation einer begegnung
+- (ueber)lebensgrosse darstellung der potentiellen matches gibt ihnen ebenbuerdigkeit, wuerde zuruck, stellt sie aber auch aus, macht sie  obduzierbar zoomen, die bilder sind machtlos ggueber meiner aktionen die ich mit ihnen auslebe. 
+- 
 
 # Konzept
 
 NEU:
 (Deskriptiv)
 Fuer die virtuelle Erfahrung muss sich vorab am Computer in den eigenen Tinder Account eingeloggt werden. Dann "geht man rein". Nach dem Aufsetzen der VR-Brille finden wir und in einem virtuellen white cube wieder. Wir befinden uns im Zentrum der pulsierenden Suchwellen der Tinder app. Vor uns eine Text mit der Aaufforderung: "There is no one around you. Open your arms to see more people.". Durch Koerperbewegung (Ausbreiten der Arme) wird die Interaktion mit der Experience gestartet.
-Es beginnen Karten mit potentiellen Personen von der Decke zu fallen. Diese Karten haben das selbe Format wie in der App. (1:1.7). Die Karten koennen gegriffen, Bewegegt, angeschaut und wieder weggelegt werden. Kontinuierlich fallen weitere Karten mit potentiellen Matches von der Decke. Bei Gefallen kann eine Karte gekuesst werden werden. Dislike geht nicht. Ist es kein Match faellt die Karte durch meinen nicht vorhandenen Koerper hindurch. Hat eine Person mich vorher auch geliked werden alle anderen Karten in Herzem zum Himmel geschossen. Es erscheint der Screen "You matched with XXX. x minutes ago. [Bild] "Send a message before your battery dies".
+Es beginnen Karten mit potentiellen Personen von der Decke zu fallen. Diese Karten haben das selbe Format wie in der App. (1:1.7). Die Karten koennen gegriffen, Bewegegt, angeschaut und wieder weggelegt werden. Kontinuierlich fallen weitere Karten mit potentiellen Matches von der Decke. Bei Gefallen kann eine Karte gekuesst werden werden. Dislike geht nicht. Ist es kein Match faellt die Karte durch meinen nicht vorhandenen Koerper hindurch. Es gibt keine Dislikes (ohne was gemahct zu haben dislikes man im real life auch niemanden).Hat eine Person mich vorher auch geliked faellt sie nicht mehr runter. werden alle anderen Karten in Herzem zum Himmel geschossen. Es erscheint der Screen "You matched with XXX. x minutes ago. [Bild] "Send a message before your battery dies".
 Es kommt keine Nachricht "Die Experience ist vorbei" oder so.
 In der App kann jetzt mit der Person gechattet werden.
 
