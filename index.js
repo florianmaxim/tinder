@@ -11,6 +11,10 @@ function randomIntFromInterval(min,max)
     return Math.floor(Math.random()*(max-min+1)+min);
 }
 
+Math.degrees = function(radians) {
+	return radians * 180 / Math.PI;
+}
+
 /**
  * @author mrdoob / http://mrdoob.com
  * @author stewdio / http://stewd.io
@@ -1299,7 +1303,7 @@ function fetchRecommendations() {
 
 			const position = {
 				x: randomIntFromInterval(-.5,.5),
-				y: randomIntFromInterval(10,50),
+				y: randomIntFromInterval(5, 10),
 				z: randomIntFromInterval(-.5,.5)
 			}
 
@@ -1309,7 +1313,7 @@ function fetchRecommendations() {
 				z:Math.random() * 2 * Math.PI
 			}
 
-			const factor = Math.random()
+			const factor = config.picture.fixedScale!==false?config.picture.fixedScale:Math.random()
 			const scale = {
 				x:factor,
 				y:factor,
@@ -1318,8 +1322,6 @@ function fetchRecommendations() {
 
 			//Add Picture
 			const picture = new Picture({
-
-				images: imageURLs,
 
 				size: size,
 
@@ -1330,11 +1332,12 @@ function fetchRecommendations() {
 				containerWireframe: config.picture.containerWireframe,
 				containerOpacity: config.picture.containerOpacity,
 				containerColor: 0xff0000,
+				
+				images: imageURLs
 
 			})
 
 			pictures.push(picture)
-			
 			picture.getMesh().userData._index = pictures.indexOf(picture)
 			picturesMeshes.add(picture.getMesh())
 
@@ -1345,7 +1348,7 @@ function fetchRecommendations() {
 				rot:[0,0,0], // start rotation in degree
 				move:true, // dynamic or statique
 				density: 1,
-				friction: 1,
+				friction: .5,
 				restitution: 0.2,
 				belongsTo: 1, // The bits of the collision groups to which the shape belongs.
 				collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
@@ -1368,7 +1371,7 @@ function init() {
 		worldscale: 1, // scale full world 
 		random: true,  // randomize sample
 		info: false,   // calculate statistic or not
-		gravity: [0,-2.1,0] 
+		gravity: [0,config.world.gravity.y,0] 
 	});
 
 	document.body.style.margin = '0';
@@ -1386,9 +1389,7 @@ function init() {
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 0xFFFFFF );
 
-	scene.fog = new THREE.Fog(0xffffff, 0, 50)
-
-	
+	scene.fog = new THREE.Fog(0xffffff, 0, config.fog.far)
 
 	if(config.space.grid){
 		var size = 1000;
@@ -1404,6 +1405,8 @@ function init() {
 		color: 0xa0a0a0,
 		roughness: 1.0,
 		metalness: 0.0,
+		transparent: true,
+		opacity: config.ground.opacity,
 		side: THREE.DoubleSide
 	} );
 	var floor = new THREE.Mesh( geometry, material );
@@ -1411,7 +1414,7 @@ function init() {
 	floor.receiveShadow = true;
 	scene.add( floor );
 
-	var body = world.add({ 
+	var body = { 
 		type:'box', // type of shape : sphere, box, cylinder 
 		size:[1000, 0.0001,1000], // size of shape
 		pos: [0,0,0], // start position in degree
@@ -1422,7 +1425,10 @@ function init() {
 		restitution: 1,
 		belongsTo: 1, // The bits of the collision groups to which the shape belongs.
 		collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
-	});
+	}
+
+	if(config.ground.body)
+	world.add(body);
 
 	//scene.add( new THREE.AmbientLight( 0xffffff) );
 

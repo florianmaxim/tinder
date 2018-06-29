@@ -10,11 +10,32 @@
 
         "tinder" : {
             "ACCESS_TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650"
+        },
+
+        "facebook" : {
+            "USER_ID" : 1
         }
     },
 
     "space" : {
-        "grid" : false
+        "grid" : true
+    },
+
+    "fog" : {
+        "far" :10
+    },
+
+    "world" : {
+        "gravity" : {
+            "x" : 0,
+            "y" : -2.5,
+            "z" : 0
+        }
+    },
+
+    "ground" : {
+        "body" : true,
+        "opacity" : 0
     },
 
     "picture" : {
@@ -30,6 +51,6 @@
 
     "fetch": {
         "ItemsPerCall" : 10,
-        "interval" : 5000
+        "interval" : 10000
     }
 }
