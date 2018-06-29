@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import * as OIMO from 'oimo';
 
-import * as config from './config.json'
+import {config} from './config'
 import {log} from './helpers'
 
+
 import Picture from './components/ComponentPicture';
+import SearchBubbleComponent from './components/ComponentSearchBubble';
+
+import _Text from './components/ComponentText';
 
 function randomIntFromInterval(min,max)
 {
@@ -1193,6 +1197,12 @@ let pause = false
 let triggerDown = false
 let selectedMesh = undefined
 
+let _started = false
+
+let text
+
+let SearchBubble
+
 init();
 animate();
 
@@ -1399,9 +1409,14 @@ function init() {
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
 
+	scene.add(camera)
+
+	text = new _Text()
+
+	camera.add(text)
+
 	var geometry = new THREE.PlaneGeometry( 10000, 10000 );
-	var material = new THREE.MeshStandardMaterial( {
-		//color: 0x0000ff,		
+	var material = new THREE.MeshStandardMaterial( {	
 		color: 0xa0a0a0,
 		roughness: 1.0,
 		metalness: 0.0,
@@ -1471,8 +1486,8 @@ function init() {
 
 	controller2 = new THREE.ViveController( 1 );
 	controller2.standingMatrix = renderer.vr.getStandingMatrix();
-	//controller2.addEventListener( 'triggerdown', onTriggerDown2 );
-	//controller2.addEventListener( 'triggerup', onTriggerUp2 );
+	controller2.addEventListener( 'triggerdown', onTriggerDown2 );
+	controller2.addEventListener( 'triggerup', onTriggerUp2 );
 	scene.add( controller2 );
 
 	var loader = new THREE.OBJLoader();
@@ -1495,7 +1510,16 @@ function init() {
 
 	var geometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, - 1 ) ] );
 
-	var line = new THREE.Line( geometry );
+
+	let lineMaterial = new THREE.LineBasicMaterial({
+		color: config.bubble.color,
+		transparent: true,
+		opacity: .25,
+		linewidth: 2,
+		side: THREE.DoubleSide
+	})
+
+	var line = new THREE.Line( geometry, lineMaterial );
 	line.name = 'line';
 	line.scale.z = 5;
 
@@ -1505,12 +1529,27 @@ function init() {
 	raycaster = new THREE.Raycaster();
 
 
-	if(config.fetch.interval!==false)
-	setInterval(() => {
-		fetchRecommendations();
-	}, config.fetch.interval)
+	
+	SearchBubble = new SearchBubbleComponent();
+	scene.add(SearchBubble.getMesh())
 
-	fetchRecommendations();
+
+	let meshGeometry = new THREE.SphereGeometry( .1, 32, 32 );
+
+	let meshMaterial = new THREE.MeshPhongMaterial({
+		color: config.bubble.color,
+		transparent: true,
+		opacity: .25,
+		side: THREE.DoubleSide
+	})
+
+	let mesh = new THREE.Mesh(meshGeometry, meshMaterial)
+
+	controller1.add(mesh)
+
+	controller2.add(mesh.clone())
+
+
 
 	window.addEventListener( 'resize', onWindowResize, false );
 }
@@ -1522,6 +1561,12 @@ function onWindowResize() {
 
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
+}
+
+
+function onTriggerDown2(){
+}
+function onTriggerUp2(){
 }
 
 function onTriggerDown( event ) {
@@ -1643,7 +1688,45 @@ function animate() {
 
 }
 
+function distanceVector( v1, v2 )
+{
+    var dx = v1.x - v2.x;
+    var dy = v1.y - v2.y;
+    var dz = v1.z - v2.z;
+
+    return Math.sqrt( dx * dx + dy * dy + dz * dz );
+}
+
 function render() {
+
+	let a = new THREE.Vector3().setFromMatrixPosition( controller1.matrixWorld );
+	let b = new THREE.Vector3().setFromMatrixPosition( controller2.matrixWorld );
+
+	const distanceBetweenControllers = distanceVector(a,b)
+
+	if(distanceBetweenControllers>1){
+		SearchBubble._grow = true
+	}else{
+		SearchBubble._grow = false
+	}
+
+	SearchBubble.update();
+
+	if(SearchBubble._exploded&&!_started){
+
+		fetchRecommendations();
+		setInterval(() => {
+			fetchRecommendations();
+		}, config.fetch.interval)	
+
+		log('started!!!!')
+
+		camera.remove(text)
+
+		_started = true;
+	
+	}
+
 
 	controller1.update();
 	controller2.update();

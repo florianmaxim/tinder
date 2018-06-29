@@ -53773,64 +53773,82 @@ exports.JOINT_PRISMATIC = JOINT_PRISMATIC;
 exports.AABB_PROX = AABB_PROX;
 exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
-},{}],4:[function(require,module,exports) {
-module.exports = {
-    
-    "simulation": false,
+},{}],3:[function(require,module,exports) {
+"use strict";
 
-    "debug" : false,
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var config = {
 
-    "API" : {
-        "BASE_URL" : "http://192.168.178.126:8888",
-        "TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650",
+    simulation: false,
 
-        "tinder" : {
-            "ACCESS_TOKEN" : "17af94b6-1544-4a8b-b872-40b53891a650"
+    debug: false,
+
+    API: {
+        BASE_URL: "http://192.168.178.126:8888",
+        TOKEN: "17af94b6-1544-4a8b-b872-40b53891a650",
+
+        tinder: {
+            ACCESS_TOKEN: "17af94b6-1544-4a8b-b872-40b53891a650"
         },
 
-        "facebook" : {
-            "USER_ID" : 1
+        facebook: {
+            USER_ID: 1
         }
     },
 
-    "space" : {
-        "grid" : true
+    space: {
+        grid: true
     },
 
-    "fog" : {
-        "far" :10
+    fog: {
+        far: 10
     },
 
-    "world" : {
-        "gravity" : {
-            "x" : 0,
-            "y" : -2.5,
-            "z" : 0
+    world: {
+        gravity: {
+            x: 0,
+            y: -2.5,
+            z: 0
         }
     },
 
-    "ground" : {
-        "body" : true,
-        "opacity" : 0
+    ground: {
+        body: true,
+        opacity: 0
     },
 
-    "picture" : {
-        "frame" : false,
-        "rotatinon": false,
+    picture: {
+        frame: false,
+        rotatinon: false,
 
-        "fixedScale" : false,
+        fixedScale: false,
 
-        "containerOpacity" : 0.25,
-        "containerWireframe" : false,
-        "containerColor" : "0xff0000"
+        containerOpacity: 0.25,
+        containerWireframe: false,
+        containerColor: 0xff0000
     },
 
-    "fetch": {
-        "ItemsPerCall" : 10,
-        "interval" : 10000
+    fetch: {
+        ItemsPerCall: 10,
+        interval: 10000
+    },
+
+    bubble: {
+        color: 0xff0000
+    },
+
+    text: {
+
+        start: "Open your arms.",
+        color: 0x333333
+
     }
 };
-},{}],5:[function(require,module,exports) {
+
+exports.config = config;
+},{}],4:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53838,7 +53856,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.log = undefined;
 
-var _config = require('./config.json');
+var _config = require('./config');
 
 var config = _interopRequireWildcard(_config);
 
@@ -53849,7 +53867,7 @@ var log = function log(props) {
 };
 
 exports.log = log;
-},{"./config.json":4}],6:[function(require,module,exports) {
+},{"./config":3}],5:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53858,9 +53876,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _config = require('../config.json');
-
-var config = _interopRequireWildcard(_config);
+var _config = require('../config');
 
 var _three = require('three');
 
@@ -54121,7 +54137,188 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config.json":4,"three":8}],2:[function(require,module,exports) {
+},{"../config":3,"three":8}],6:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _config = require('../config');
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ComponentSearchBubble = function () {
+    function ComponentSearchBubble() {
+        _classCallCheck(this, ComponentSearchBubble);
+
+        this.time = new THREE.Clock();
+
+        this._grow = false;
+        this._exploded = false;
+
+        this.meshGeometry = new THREE.SphereGeometry(2, 32, 32);
+
+        this.meshMaterial = new THREE.MeshPhongMaterial({
+            color: _config.config.bubble.color,
+            transparent: true,
+            opacity: .25,
+            side: THREE.DoubleSide
+        });
+
+        this.mesh = new THREE.Mesh(this.meshGeometry, this.meshMaterial);
+    }
+
+    _createClass(ComponentSearchBubble, [{
+        key: 'getMesh',
+        value: function getMesh() {
+            return this.mesh;
+        }
+    }, {
+        key: 'update',
+        value: function update() {
+
+            if (this._grow) {
+                //grow
+                var f = this.mesh.scale.x + 0.01;
+                this.mesh.scale.set(f, f, f);
+
+                if (f > _config.config.fog.far / 2) this._exploded = true;
+            } else {
+
+                if (this._exploded) return;
+                //breath
+                var _f = Math.cos(this.time.getElapsedTime()) / 2 + 2;
+                this.mesh.scale.set(_f, _f, _f);
+            }
+        }
+    }]);
+
+    return ComponentSearchBubble;
+}();
+
+exports.default = ComponentSearchBubble;
+},{"../config":3,"three":8}],7:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+        value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _config = require('../config');
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ComponentText = function () {
+        function ComponentText() {
+                _classCallCheck(this, ComponentText);
+
+                this.time = new THREE.Clock();
+
+                this._grow = false;
+                this._exploded = false;
+
+                var loader = new THREE.FontLoader();
+
+                var container = new THREE.Group();
+
+                loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+
+                        var geometry = new THREE.TextGeometry('There is no one around you.', {
+                                font: font,
+                                size: .075,
+                                height: .001,
+                                curveSegments: 12,
+                                bevelEnabled: false
+                        });
+
+                        var material = new THREE.MeshBasicMaterial({
+                                color: _config.config.text.color,
+                                transparent: true,
+                                opacity: .85,
+                                side: THREE.DoubleSide
+                        });
+
+                        var mesh = new THREE.Mesh(geometry, material);
+
+                        var box = new THREE.Box3().setFromObject(mesh);
+
+                        mesh.position.set(-box.getSize().x / 2, 0, -1);
+
+                        container.add(mesh);
+
+                        geometry = new THREE.TextGeometry('Open your arms to see more people.', {
+                                font: font,
+                                size: .055,
+                                height: .001,
+                                curveSegments: 12,
+                                bevelEnabled: false
+                        });
+
+                        material = new THREE.MeshBasicMaterial({
+                                color: _config.config.text.color,
+                                transparent: true,
+                                opacity: .85,
+                                side: THREE.DoubleSide
+                        });
+
+                        mesh = new THREE.Mesh(geometry, material);
+
+                        box = new THREE.Box3().setFromObject(mesh);
+
+                        mesh.position.set(-box.getSize().x / 2, -.125, -1);
+
+                        container.add(mesh);
+
+                        //Logo
+                        geometry = new THREE.PlaneGeometry(.1, .1);
+
+                        material = new THREE.MeshBasicMaterial({
+                                color: _config.config.text.color,
+                                transparent: true,
+                                opacity: .85,
+                                side: THREE.DoubleSide
+                        });
+
+                        mesh = new THREE.Mesh(geometry, material);
+
+                        box = new THREE.Box3().setFromObject(mesh);
+
+                        mesh.position.set(-box.getSize().x / 2, .125, -1);
+
+                        // container.add(mesh)
+
+                });
+
+                return container;
+        }
+
+        _createClass(ComponentText, [{
+                key: 'update',
+                value: function update() {}
+        }]);
+
+        return ComponentText;
+}();
+
+exports.default = ComponentText;
+},{"../config":3,"three":8}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -54132,15 +54329,21 @@ var _oimo = require('oimo');
 
 var OIMO = _interopRequireWildcard(_oimo);
 
-var _config = require('./config.json');
-
-var config = _interopRequireWildcard(_config);
+var _config = require('./config');
 
 var _helpers = require('./helpers');
 
 var _ComponentPicture = require('./components/ComponentPicture');
 
 var _ComponentPicture2 = _interopRequireDefault(_ComponentPicture);
+
+var _ComponentSearchBubble = require('./components/ComponentSearchBubble');
+
+var _ComponentSearchBubble2 = _interopRequireDefault(_ComponentSearchBubble);
+
+var _ComponentText = require('./components/ComponentText');
+
+var _ComponentText2 = _interopRequireDefault(_ComponentText);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -55197,6 +55400,12 @@ var pause = false;
 var triggerDown = false;
 var selectedMesh = undefined;
 
+var _started = false;
+
+var text = void 0;
+
+var SearchBubble = void 0;
+
 init();
 animate();
 
@@ -55204,7 +55413,7 @@ function fetchRecommendations() {
 
 			(0, _helpers.log)('fetch recs');
 
-			if (config.simulation) {
+			if (_config.config.simulation) {
 
 						var size = {
 									x: 1,
@@ -55224,7 +55433,7 @@ function fetchRecommendations() {
 									z: Math.random() * 2 * Math.PI
 						};
 
-						var factor = config.picture.fixedScale !== false ? config.picture.fixedScale : Math.random();
+						var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
 						var scale = {
 									x: factor,
 									y: factor,
@@ -55239,8 +55448,8 @@ function fetchRecommendations() {
 									rotation: rotation,
 									scale: scale,
 
-									containerWireframe: config.picture.containerWireframe,
-									containerOpacity: config.picture.containerOpacity,
+									containerWireframe: _config.config.picture.containerWireframe,
+									containerOpacity: _config.config.picture.containerOpacity,
 									containerColor: 0xff0000,
 
 									images: ['models/textures/me.jpg']
@@ -55268,7 +55477,7 @@ function fetchRecommendations() {
 						return;
 			}
 
-			fetch(config.API.BASE_URL + '/recs/' + config.API.TOKEN).then(function (response) {
+			fetch(_config.config.API.BASE_URL + '/recs/' + _config.config.API.TOKEN).then(function (response) {
 						return response.json();
 			}).then(function (response) {
 
@@ -55277,7 +55486,7 @@ function fetchRecommendations() {
 						var count = 0;
 						response.results.forEach(function (element) {
 
-									if (count >= config.fetch.ItemsPerCall) return;
+									if (count >= _config.config.fetch.ItemsPerCall) return;
 
 									count++;
 
@@ -55290,7 +55499,7 @@ function fetchRecommendations() {
 
 												var photoId = element.id;
 												var dimensions = '640x640';
-												var url = config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
+												var url = _config.config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
 
 												imageURLs.push(url);
 
@@ -55315,7 +55524,7 @@ function fetchRecommendations() {
 												z: Math.random() * 2 * Math.PI
 									};
 
-									var factor = config.picture.fixedScale !== false ? config.picture.fixedScale : Math.random();
+									var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
 									var scale = {
 												x: factor,
 												y: factor,
@@ -55330,8 +55539,8 @@ function fetchRecommendations() {
 												rotation: rotation,
 												scale: scale,
 
-												containerWireframe: config.picture.containerWireframe,
-												containerOpacity: config.picture.containerOpacity,
+												containerWireframe: _config.config.picture.containerWireframe,
+												containerOpacity: _config.config.picture.containerOpacity,
 												containerColor: 0xff0000,
 
 												images: imageURLs
@@ -55370,7 +55579,7 @@ function init() {
 						worldscale: 1, // scale full world 
 						random: true, // randomize sample
 						info: false, // calculate statistic or not
-						gravity: [0, config.world.gravity.y, 0]
+						gravity: [0, _config.config.world.gravity.y, 0]
 			});
 
 			document.body.style.margin = '0';
@@ -55388,9 +55597,9 @@ function init() {
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xFFFFFF);
 
-			scene.fog = new THREE.Fog(0xffffff, 0, config.fog.far);
+			scene.fog = new THREE.Fog(0xffffff, 0, _config.config.fog.far);
 
-			if (config.space.grid) {
+			if (_config.config.space.grid) {
 						var size = 1000;
 						var divisions = 1000;
 						scene.add(new THREE.GridHelper(size, divisions));
@@ -55398,14 +55607,19 @@ function init() {
 
 			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
+			scene.add(camera);
+
+			text = new _ComponentText2.default();
+
+			camera.add(text);
+
 			var geometry = new THREE.PlaneGeometry(10000, 10000);
 			var material = new THREE.MeshStandardMaterial({
-						//color: 0x0000ff,		
 						color: 0xa0a0a0,
 						roughness: 1.0,
 						metalness: 0.0,
 						transparent: true,
-						opacity: config.ground.opacity,
+						opacity: _config.config.ground.opacity,
 						side: THREE.DoubleSide
 			});
 			var floor = new THREE.Mesh(geometry, material);
@@ -55426,7 +55640,7 @@ function init() {
 						collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 			};
 
-			if (config.ground.body) world.add(body);
+			if (_config.config.ground.body) world.add(body);
 
 			//scene.add( new THREE.AmbientLight( 0xffffff) );
 
@@ -55469,8 +55683,8 @@ function init() {
 
 			controller2 = new THREE.ViveController(1);
 			controller2.standingMatrix = renderer.vr.getStandingMatrix();
-			//controller2.addEventListener( 'triggerdown', onTriggerDown2 );
-			//controller2.addEventListener( 'triggerup', onTriggerUp2 );
+			controller2.addEventListener('triggerdown', onTriggerDown2);
+			controller2.addEventListener('triggerup', onTriggerUp2);
 			scene.add(controller2);
 
 			var loader = new THREE.OBJLoader();
@@ -55492,7 +55706,15 @@ function init() {
 
 			var geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
 
-			var line = new THREE.Line(geometry);
+			var lineMaterial = new THREE.LineBasicMaterial({
+						color: _config.config.bubble.color,
+						transparent: true,
+						opacity: .25,
+						linewidth: 2,
+						side: THREE.DoubleSide
+			});
+
+			var line = new THREE.Line(geometry, lineMaterial);
 			line.name = 'line';
 			line.scale.z = 5;
 
@@ -55501,11 +55723,23 @@ function init() {
 
 			raycaster = new THREE.Raycaster();
 
-			if (config.fetch.interval !== false) setInterval(function () {
-						fetchRecommendations();
-			}, config.fetch.interval);
+			SearchBubble = new _ComponentSearchBubble2.default();
+			scene.add(SearchBubble.getMesh());
 
-			fetchRecommendations();
+			var meshGeometry = new THREE.SphereGeometry(.1, 32, 32);
+
+			var meshMaterial = new THREE.MeshPhongMaterial({
+						color: _config.config.bubble.color,
+						transparent: true,
+						opacity: .25,
+						side: THREE.DoubleSide
+			});
+
+			var mesh = new THREE.Mesh(meshGeometry, meshMaterial);
+
+			controller1.add(mesh);
+
+			controller2.add(mesh.clone());
 
 			window.addEventListener('resize', onWindowResize, false);
 }
@@ -55517,6 +55751,9 @@ function onWindowResize() {
 
 			renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+function onTriggerDown2() {}
+function onTriggerUp2() {}
 
 function onTriggerDown(event) {
 
@@ -55626,7 +55863,42 @@ function animate() {
 			renderer.setAnimationLoop(render);
 }
 
+function distanceVector(v1, v2) {
+			var dx = v1.x - v2.x;
+			var dy = v1.y - v2.y;
+			var dz = v1.z - v2.z;
+
+			return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
 function render() {
+
+			var a = new THREE.Vector3().setFromMatrixPosition(controller1.matrixWorld);
+			var b = new THREE.Vector3().setFromMatrixPosition(controller2.matrixWorld);
+
+			var distanceBetweenControllers = distanceVector(a, b);
+
+			if (distanceBetweenControllers > 1) {
+						SearchBubble._grow = true;
+			} else {
+						SearchBubble._grow = false;
+			}
+
+			SearchBubble.update();
+
+			if (SearchBubble._exploded && !_started) {
+
+						fetchRecommendations();
+						setInterval(function () {
+									fetchRecommendations();
+						}, _config.config.fetch.interval);
+
+						(0, _helpers.log)('started!!!!');
+
+						camera.remove(text);
+
+						_started = true;
+			}
 
 			controller1.update();
 			controller2.update();
@@ -55650,7 +55922,7 @@ function render() {
 
 			renderer.render(scene, camera);
 }
-},{"three":8,"oimo":9,"./config.json":4,"./helpers":5,"./components/ComponentPicture":6}],34:[function(require,module,exports) {
+},{"three":8,"oimo":9,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentText":7}],18:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55679,7 +55951,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53872' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '51986' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -55820,5 +56092,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[34,2], null)
+},{}]},{},[18,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

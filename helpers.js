@@ -1,4 +1,4 @@
-import * as config from './config.json'
+import * as config from './config'
 
 const log = function(props){
     if(config.debug)

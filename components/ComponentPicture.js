@@ -2,7 +2,7 @@
  * This represents a profile as a framed painting.
 */
 
-import * as config from '../config.json'
+import {config} from '../config'
 
 import * as THREE from 'three';
 
