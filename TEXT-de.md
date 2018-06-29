@@ -12,9 +12,32 @@ Aus den Untiefen des Online-Dating bewegen wir uns nun...
 
 Verteile deine Matches ueber den...
 
+# Situation
+
+- PHOTO VON TAB MIT BRILLE 
+
 # Konzept
 
-Bevor die VR-Brille aufgesetzt wird muss man sich am Computer per facebook einloggen.
+Fuer die virtuelle Erfahrung muss sich vorab am Computer in den eigenen Tinder Account eingeloggt werden. Nach dem Aufsetzen der VR-Brille finden wir und in einem virtuellen
+white cube wieder. Durch Koerperbewegung (Ausbreiten der Arme) wird die Interaktion mit der Experience gestartet. 
+
+- Interaktion mit den inder daten auf einer koerperlichen Ebene
+- Eine Dreiminensionalisiserung koerperliche raemliche Erfahung
+- Eine Erweiterung der Koerperlichkeit mit den potentiellen Matches
+- Ueberangebot der potentiellen datingpartner
+- Die Iluusion der Regulierbarkeit durch die App Tinder wird gebrochen
+(Alle sind in einem Raum)
+- Die die lebensgrosse oder noch groesser bekommen die Personen eine andere Dimension
+- Technisches Heraussizieren. (nadel im Heuhaufen)
+- Freie Entscheidung 
+- Wahrend der Auswahl ist das stets das gesammte Angebot im Raum 
+- Unterschied zur Tinder App: Jeder Like ist mit dem Risiko verbunden ein Match zu werden, wodurch alle potentiellen anderen sich aufloesen
+
+- Bildhaftigkeit
+- Wirkung des Zweidimensionalitaet eines Fotos im dreidimensionalen Medium
+- Illusion der Erhabenheit ueber die Person aufgrund der gerigen Groesse wird gebrochen, dadurch dass die hier dargestellten personen viel goesser sind
+- !!! Liniaritat die eigentlich Fiktion ist wird in der gleichzeitigen Anwesenheit der Individuen wieder erfahrbar gemacht. !!!
+
 Dann "geht man rein". 
 
 Wir befinden und in einem leeren white space. wir wissen nicht was zu tun (immernoch das neue Medium - immer erstmal mal herausfinden wie es zu benutzen ist).
