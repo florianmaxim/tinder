@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({8:[function(require,module,exports) {
+})({9:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],9:[function(require,module,exports) {
+},{}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53783,14 +53783,14 @@ var config = {
 
     simulation: false,
 
-    debug: false,
+    debug: true,
 
     API: {
         BASE_URL: "http://192.168.178.126:8888",
-        TOKEN: "17af94b6-1544-4a8b-b872-40b53891a650",
+        TOKEN: "33b04764-dfcf-456a-b5e3-9d7db8d8bbef",
 
         tinder: {
-            ACCESS_TOKEN: "17af94b6-1544-4a8b-b872-40b53891a650"
+            ACCESS_TOKEN: "33b04764-dfcf-456a-b5e3-9d7db8d8bbef"
         },
 
         facebook: {
@@ -53823,6 +53823,9 @@ var config = {
         frame: false,
         rotatinon: false,
 
+        caption: true,
+        browse: true,
+
         fixedScale: false,
 
         containerOpacity: 0.25,
@@ -53831,8 +53834,8 @@ var config = {
     },
 
     fetch: {
-        ItemsPerCall: 10,
-        interval: 10000
+        ItemsPerCall: 16,
+        interval: 57000
     },
 
     bubble: {
@@ -53844,7 +53847,9 @@ var config = {
         start: "Open your arms.",
         color: 0x333333
 
-    }
+    },
+
+    distanceHandsStart: .85
 };
 
 exports.config = config;
@@ -54002,6 +54007,12 @@ var ComponentPicture = function () {
         value: function init(props) {
             var _this = this;
 
+            //Pass name
+            this.name = props.name !== undefined ? props.name : 'Florian Maxim';
+
+            //Pass age
+            this.age = props.age !== undefined ? props.age : '29';
+
             //Pass Images
             this.meshTextures = props.images !== undefined ? props.images : [];
 
@@ -54029,7 +54040,37 @@ var ComponentPicture = function () {
             //Apply rotation if given
             this.meshContainer.scale.set(props.scale.x, props.scale.y, props.scale.z);
 
-            //Init FrameMesh
+            //Add Text
+            var loader = new THREE.FontLoader();
+
+            if (_config.config.picture.caption) loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+
+                var geometry = new THREE.TextGeometry(_this.name + ', ' + _this.age, {
+                    font: font,
+                    size: .075,
+                    height: .01,
+                    curveSegments: 12,
+                    bevelEnabled: false
+                });
+
+                var material = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: .85,
+                    side: THREE.DoubleSide
+                });
+
+                var mesh = new THREE.Mesh(geometry, material);
+
+                var meshBoxSize = new THREE.Box3().setFromObject(mesh).getSize();
+
+                //Why can I not use this???
+                var containerMeshBoxSize = new THREE.Box3().setFromObject(_this.meshContainer).getSize();
+
+                mesh.position.set(-meshBoxSize.x / 2, -.75, .05);
+
+                _this.meshContainer.add(mesh);
+            });
 
             //Load model
             //new THREE.OBJLoader().load( 
@@ -54137,7 +54178,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config":3,"three":8}],6:[function(require,module,exports) {
+},{"../config":3,"three":9}],6:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54206,11 +54247,11 @@ var ComponentSearchBubble = function () {
 }();
 
 exports.default = ComponentSearchBubble;
-},{"../config":3,"three":8}],7:[function(require,module,exports) {
+},{"../config":3,"three":9}],15:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-        value: true
+    value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -54225,100 +54266,275 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var ComponentText = function () {
-        function ComponentText() {
-                _classCallCheck(this, ComponentText);
+var interval = void 0;
 
-                this.time = new THREE.Clock();
+var scope = void 0;
 
-                this._grow = false;
-                this._exploded = false;
+var ComponentPulse = function () {
+    function ComponentPulse() {
+        _classCallCheck(this, ComponentPulse);
 
-                var loader = new THREE.FontLoader();
+        scope = this;
 
-                var container = new THREE.Group();
+        this.time = new THREE.Clock();
 
-                loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+        this._grow = false;
+        this._exploded = false;
+        this._started = false;
 
-                        var geometry = new THREE.TextGeometry('There is no one around you.', {
-                                font: font,
-                                size: .075,
-                                height: .001,
-                                curveSegments: 12,
-                                bevelEnabled: false
-                        });
+        this.container = new THREE.Group();
+    }
 
-                        var material = new THREE.MeshBasicMaterial({
-                                color: _config.config.text.color,
-                                transparent: true,
-                                opacity: .85,
-                                side: THREE.DoubleSide
-                        });
+    _createClass(ComponentPulse, [{
+        key: 'start',
+        value: function start() {
+            var _this = this;
 
-                        var mesh = new THREE.Mesh(geometry, material);
+            interval = setInterval(function () {
 
-                        var box = new THREE.Box3().setFromObject(mesh);
-
-                        mesh.position.set(-box.getSize().x / 2, 0, -1);
-
-                        container.add(mesh);
-
-                        geometry = new THREE.TextGeometry('Open your arms to see more people.', {
-                                font: font,
-                                size: .055,
-                                height: .001,
-                                curveSegments: 12,
-                                bevelEnabled: false
-                        });
-
-                        material = new THREE.MeshBasicMaterial({
-                                color: _config.config.text.color,
-                                transparent: true,
-                                opacity: .85,
-                                side: THREE.DoubleSide
-                        });
-
-                        mesh = new THREE.Mesh(geometry, material);
-
-                        box = new THREE.Box3().setFromObject(mesh);
-
-                        mesh.position.set(-box.getSize().x / 2, -.125, -1);
-
-                        container.add(mesh);
-
-                        //Logo
-                        geometry = new THREE.PlaneGeometry(.1, .1);
-
-                        material = new THREE.MeshBasicMaterial({
-                                color: _config.config.text.color,
-                                transparent: true,
-                                opacity: .85,
-                                side: THREE.DoubleSide
-                        });
-
-                        mesh = new THREE.Mesh(geometry, material);
-
-                        box = new THREE.Box3().setFromObject(mesh);
-
-                        mesh.position.set(-box.getSize().x / 2, .125, -1);
-
-                        // container.add(mesh)
-
+                _this.meshGeometry = new THREE.SphereGeometry(.2, 32, 32);
+                _this.meshMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff0000,
+                    transparent: true,
+                    opacity: .1,
+                    side: THREE.DoubleSide,
+                    wireframe: false
                 });
 
-                return container;
+                _this.container.add(new THREE.Mesh(_this.meshGeometry, _this.meshMaterial));
+            }, 3000);
+
+            this._started = true;
         }
+    }, {
+        key: 'stop',
+        value: function stop() {
+            clearInterval(interval);
+        }
+    }, {
+        key: 'getMesh',
+        value: function getMesh() {
+            return this.container;
+        }
+    }, {
+        key: 'update',
+        value: function update() {
 
-        _createClass(ComponentText, [{
-                key: 'update',
-                value: function update() {}
-        }]);
+            if (this._started) scope.container.traverse(function (bubble) {
 
-        return ComponentText;
+                var f = bubble.scale.x;
+
+                if (f > _config.config.fog.far) {
+                    //scope.container.remove(bubble)
+                } else {
+                    f = f + 0.01;
+                    bubble.scale.set(f, f, f);
+                }
+            });
+        }
+    }]);
+
+    return ComponentPulse;
+}();
+
+exports.default = ComponentPulse;
+},{"../config":3,"three":9}],7:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _config = require('../config');
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function remapUVs(geo) {
+
+    var max = void 0,
+        min = void 0,
+        offset = void 0,
+        size = void 0,
+        v1 = void 0,
+        v2 = void 0,
+        v3 = void 0;
+
+    geo.computeBoundingBox();
+
+    min = geo.boundingBox.min;
+    max = geo.boundingBox.max;
+
+    offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+    size = new THREE.Vector2(max.x - min.x, max.y - min.y);
+
+    geo.faceVertexUvs[0] = [];
+
+    geo.faces.forEach(function (face) {
+
+        v1 = geo.vertices[face.a];
+        v2 = geo.vertices[face.b];
+        v3 = geo.vertices[face.c];
+
+        geo.faceVertexUvs[0].push([new THREE.Vector2((v1.x + offset.x) / size.x, (v1.y + offset.y) / size.y), new THREE.Vector2((v2.x + offset.x) / size.x, (v2.y + offset.y) / size.y), new THREE.Vector2((v3.x + offset.x) / size.x, (v3.y + offset.y) / size.y)]);
+    });
+
+    return geo.uvsNeedUpdate = true;
+};
+
+function makeRoundedCornerPlane() {
+    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1.7;
+    var radius = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+    var smooth = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 16;
+
+
+    var geometry = new THREE.Geometry();
+
+    var _width = width;
+    var _height = height;
+
+    var _radius = .125;
+    var _smooth = 16;
+
+    var cornerA = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 1, Math.PI * 2 / 4);
+    var matrixA = new THREE.Matrix4();
+    matrixA.makeTranslation(-width / 2, height / 2, 0);
+    geometry.merge(cornerA, matrixA);
+
+    var cornerB = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 0, Math.PI * 2 / 4);
+    var matrixB = new THREE.Matrix4();
+    matrixB.makeTranslation(width / 2, height / 2, 0);
+    geometry.merge(cornerB, matrixB);
+
+    var cornerC = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 2, Math.PI * 2 / 4);
+    var matrixC = new THREE.Matrix4();
+    matrixC.makeTranslation(-width / 2, -height / 2, 0);
+    geometry.merge(cornerC, matrixC);
+
+    var cornerD = new THREE.CircleGeometry(radius, smooth, Math.PI * 2 / 4 * 3, Math.PI * 2 / 4);
+    var matrixD = new THREE.Matrix4();
+    matrixD.makeTranslation(width / 2, -height / 2, 0);
+    geometry.merge(cornerD, matrixD);
+
+    var planeHorizontal = new THREE.PlaneGeometry(width + radius * 2, height);
+    geometry.merge(planeHorizontal);
+
+    var planeVertical = new THREE.PlaneGeometry(width, height + radius * 2);
+    geometry.merge(planeVertical);
+
+    remapUVs(geometry);
+
+    return geometry;
+}
+
+var ComponentText = function () {
+    function ComponentText() {
+        _classCallCheck(this, ComponentText);
+
+        this.time = new THREE.Clock();
+
+        this._grow = false;
+        this._exploded = false;
+
+        var loader = new THREE.FontLoader();
+
+        var container = new THREE.Group();
+
+        loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+
+            var geometry = new THREE.TextGeometry('There is no one around you.', {
+                font: font,
+                size: .075,
+                height: .001,
+                curveSegments: 12,
+                bevelEnabled: false
+            });
+
+            var material = new THREE.MeshBasicMaterial({
+                color: _config.config.text.color,
+                transparent: true,
+                opacity: .85,
+                side: THREE.DoubleSide
+            });
+
+            var mesh = new THREE.Mesh(geometry, material);
+
+            var box = new THREE.Box3().setFromObject(mesh);
+
+            mesh.position.set(-box.getSize().x / 2, 0, -1);
+
+            container.add(mesh);
+
+            geometry = new THREE.TextGeometry('Open your arms to see more people.', {
+                font: font,
+                size: .055,
+                height: .001,
+                curveSegments: 12,
+                bevelEnabled: false
+            });
+
+            material = new THREE.MeshBasicMaterial({
+                color: _config.config.text.color,
+                transparent: true,
+                opacity: .85,
+                side: THREE.DoubleSide
+            });
+
+            mesh = new THREE.Mesh(geometry, material);
+
+            box = new THREE.Box3().setFromObject(mesh);
+
+            mesh.position.set(-box.getSize().x / 2, -.125, -1);
+
+            container.add(mesh);
+
+            //Logo
+
+            var textureLoader = new THREE.TextureLoader();
+            textureLoader.crossOrigin = "Anonymous";
+            textureLoader.load('models/tinder.png', function (texture) {
+
+                geometry = makeRoundedCornerPlane(.1, .1, 0.05);
+
+                material = new THREE.MeshStandardMaterial({
+                    color: _config.config.text.color,
+                    transparent: true,
+                    opacity: 1,
+                    side: THREE.DoubleSide,
+                    map: texture
+                });
+
+                mesh = new THREE.Mesh(geometry, material);
+
+                box = new THREE.Box3().setFromObject(mesh);
+
+                mesh.position.set(0, .25, -1);
+
+                container.add(mesh);
+            });
+        });
+
+        return container;
+    }
+
+    _createClass(ComponentText, [{
+        key: 'update',
+        value: function update() {}
+    }]);
+
+    return ComponentText;
 }();
 
 exports.default = ComponentText;
-},{"../config":3,"three":8}],2:[function(require,module,exports) {
+},{"../config":3,"three":9}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -54341,6 +54557,10 @@ var _ComponentSearchBubble = require('./components/ComponentSearchBubble');
 
 var _ComponentSearchBubble2 = _interopRequireDefault(_ComponentSearchBubble);
 
+var _ComponentPulse = require('./components/ComponentPulse');
+
+var _ComponentPulse2 = _interopRequireDefault(_ComponentPulse);
+
 var _ComponentText = require('./components/ComponentText');
 
 var _ComponentText2 = _interopRequireDefault(_ComponentText);
@@ -54350,11 +54570,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function randomIntFromInterval(min, max) {
-			return Math.floor(Math.random() * (max - min + 1) + min);
+	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 Math.degrees = function (radians) {
-			return radians * 180 / Math.PI;
+	return radians * 180 / Math.PI;
 };
 
 /**
@@ -54364,109 +54584,109 @@ Math.degrees = function (radians) {
 
 THREE.ViveController = function (id) {
 
-			THREE.Object3D.call(this);
+	THREE.Object3D.call(this);
 
-			var scope = this;
-			var gamepad;
+	var scope = this;
+	var gamepad;
 
-			var axes = [0, 0];
-			var thumbpadIsPressed = false;
-			var triggerIsPressed = false;
-			var gripsArePressed = false;
-			var menuIsPressed = false;
+	var axes = [0, 0];
+	var thumbpadIsPressed = false;
+	var triggerIsPressed = false;
+	var gripsArePressed = false;
+	var menuIsPressed = false;
 
-			function findGamepad(id) {
+	function findGamepad(id) {
 
-						// Iterate across gamepads as Vive Controllers may not be
-						// in position 0 and 1.
+		// Iterate across gamepads as Vive Controllers may not be
+		// in position 0 and 1.
 
-						var gamepads = navigator.getGamepads && navigator.getGamepads();
+		var gamepads = navigator.getGamepads && navigator.getGamepads();
 
-						for (var i = 0, j = 0; i < gamepads.length; i++) {
+		for (var i = 0, j = 0; i < gamepads.length; i++) {
 
-									var gamepad = gamepads[i];
+			var gamepad = gamepads[i];
 
-									if (gamepad && (gamepad.id === 'OpenVR Gamepad' || gamepad.id.startsWith('Oculus Touch') || gamepad.id.startsWith('Spatial Controller'))) {
+			if (gamepad && (gamepad.id === 'OpenVR Gamepad' || gamepad.id.startsWith('Oculus Touch') || gamepad.id.startsWith('Spatial Controller'))) {
 
-												if (j === id) return gamepad;
+				if (j === id) return gamepad;
 
-												j++;
-									}
-						}
+				j++;
+			}
+		}
+	}
+
+	this.matrixAutoUpdate = false;
+	this.standingMatrix = new THREE.Matrix4();
+
+	this.getGamepad = function () {
+
+		return gamepad;
+	};
+
+	this.getButtonState = function (button) {
+
+		if (button === 'thumbpad') return thumbpadIsPressed;
+		if (button === 'trigger') return triggerIsPressed;
+		if (button === 'grips') return gripsArePressed;
+		if (button === 'menu') return menuIsPressed;
+	};
+
+	this.update = function () {
+
+		gamepad = findGamepad(id);
+
+		if (gamepad !== undefined && gamepad.pose !== undefined) {
+
+			if (gamepad.pose === null) return; // No user action yet
+
+			//  Position and orientation.
+
+			var pose = gamepad.pose;
+
+			if (pose.position !== null) scope.position.fromArray(pose.position);
+			if (pose.orientation !== null) scope.quaternion.fromArray(pose.orientation);
+			scope.matrix.compose(scope.position, scope.quaternion, scope.scale);
+			scope.matrix.premultiply(scope.standingMatrix);
+			scope.matrixWorldNeedsUpdate = true;
+			scope.visible = true;
+
+			//  Thumbpad and Buttons.
+
+			if (axes[0] !== gamepad.axes[0] || axes[1] !== gamepad.axes[1]) {
+
+				axes[0] = gamepad.axes[0]; //  X axis: -1 = Left, +1 = Right.
+				axes[1] = gamepad.axes[1]; //  Y axis: -1 = Bottom, +1 = Top.
+				scope.dispatchEvent({ type: 'axischanged', axes: axes });
 			}
 
-			this.matrixAutoUpdate = false;
-			this.standingMatrix = new THREE.Matrix4();
+			if (thumbpadIsPressed !== gamepad.buttons[0].pressed) {
 
-			this.getGamepad = function () {
+				thumbpadIsPressed = gamepad.buttons[0].pressed;
+				scope.dispatchEvent({ type: thumbpadIsPressed ? 'thumbpaddown' : 'thumbpadup', axes: axes });
+			}
 
-						return gamepad;
-			};
+			if (triggerIsPressed !== gamepad.buttons[1].pressed) {
 
-			this.getButtonState = function (button) {
+				triggerIsPressed = gamepad.buttons[1].pressed;
+				scope.dispatchEvent({ type: triggerIsPressed ? 'triggerdown' : 'triggerup' });
+			}
 
-						if (button === 'thumbpad') return thumbpadIsPressed;
-						if (button === 'trigger') return triggerIsPressed;
-						if (button === 'grips') return gripsArePressed;
-						if (button === 'menu') return menuIsPressed;
-			};
+			if (gripsArePressed !== gamepad.buttons[2].pressed) {
 
-			this.update = function () {
+				gripsArePressed = gamepad.buttons[2].pressed;
+				scope.dispatchEvent({ type: gripsArePressed ? 'gripsdown' : 'gripsup' });
+			}
 
-						gamepad = findGamepad(id);
+			if (menuIsPressed !== gamepad.buttons[3].pressed) {
 
-						if (gamepad !== undefined && gamepad.pose !== undefined) {
+				menuIsPressed = gamepad.buttons[3].pressed;
+				scope.dispatchEvent({ type: menuIsPressed ? 'menudown' : 'menuup' });
+			}
+		} else {
 
-									if (gamepad.pose === null) return; // No user action yet
-
-									//  Position and orientation.
-
-									var pose = gamepad.pose;
-
-									if (pose.position !== null) scope.position.fromArray(pose.position);
-									if (pose.orientation !== null) scope.quaternion.fromArray(pose.orientation);
-									scope.matrix.compose(scope.position, scope.quaternion, scope.scale);
-									scope.matrix.premultiply(scope.standingMatrix);
-									scope.matrixWorldNeedsUpdate = true;
-									scope.visible = true;
-
-									//  Thumbpad and Buttons.
-
-									if (axes[0] !== gamepad.axes[0] || axes[1] !== gamepad.axes[1]) {
-
-												axes[0] = gamepad.axes[0]; //  X axis: -1 = Left, +1 = Right.
-												axes[1] = gamepad.axes[1]; //  Y axis: -1 = Bottom, +1 = Top.
-												scope.dispatchEvent({ type: 'axischanged', axes: axes });
-									}
-
-									if (thumbpadIsPressed !== gamepad.buttons[0].pressed) {
-
-												thumbpadIsPressed = gamepad.buttons[0].pressed;
-												scope.dispatchEvent({ type: thumbpadIsPressed ? 'thumbpaddown' : 'thumbpadup', axes: axes });
-									}
-
-									if (triggerIsPressed !== gamepad.buttons[1].pressed) {
-
-												triggerIsPressed = gamepad.buttons[1].pressed;
-												scope.dispatchEvent({ type: triggerIsPressed ? 'triggerdown' : 'triggerup' });
-									}
-
-									if (gripsArePressed !== gamepad.buttons[2].pressed) {
-
-												gripsArePressed = gamepad.buttons[2].pressed;
-												scope.dispatchEvent({ type: gripsArePressed ? 'gripsdown' : 'gripsup' });
-									}
-
-									if (menuIsPressed !== gamepad.buttons[3].pressed) {
-
-												menuIsPressed = gamepad.buttons[3].pressed;
-												scope.dispatchEvent({ type: menuIsPressed ? 'menudown' : 'menuup' });
-									}
-						} else {
-
-									scope.visible = false;
-						}
-			};
+			scope.visible = false;
+		}
+	};
 };
 
 THREE.ViveController.prototype = Object.create(THREE.Object3D.prototype);
@@ -54474,905 +54694,905 @@ THREE.ViveController.prototype.constructor = THREE.ViveController;
 
 THREE.OBJLoader = function () {
 
-			// o object_name | g group_name
-			var object_pattern = /^[og]\s*(.+)?/;
-			// mtllib file_reference
-			var material_library_pattern = /^mtllib /;
-			// usemtl material_name
-			var material_use_pattern = /^usemtl /;
+	// o object_name | g group_name
+	var object_pattern = /^[og]\s*(.+)?/;
+	// mtllib file_reference
+	var material_library_pattern = /^mtllib /;
+	// usemtl material_name
+	var material_use_pattern = /^usemtl /;
 
-			function ParserState() {
+	function ParserState() {
 
-						var state = {
-									objects: [],
-									object: {},
+		var state = {
+			objects: [],
+			object: {},
 
-									vertices: [],
-									normals: [],
-									colors: [],
-									uvs: [],
+			vertices: [],
+			normals: [],
+			colors: [],
+			uvs: [],
 
-									materialLibraries: [],
+			materialLibraries: [],
 
-									startObject: function startObject(name, fromDeclaration) {
+			startObject: function startObject(name, fromDeclaration) {
 
-												// If the current object (initial from reset) is not from a g/o declaration in the parsed
-												// file. We need to use it for the first parsed g/o to keep things in sync.
-												if (this.object && this.object.fromDeclaration === false) {
+				// If the current object (initial from reset) is not from a g/o declaration in the parsed
+				// file. We need to use it for the first parsed g/o to keep things in sync.
+				if (this.object && this.object.fromDeclaration === false) {
 
-															this.object.name = name;
-															this.object.fromDeclaration = fromDeclaration !== false;
-															return;
-												}
+					this.object.name = name;
+					this.object.fromDeclaration = fromDeclaration !== false;
+					return;
+				}
 
-												var previousMaterial = this.object && typeof this.object.currentMaterial === 'function' ? this.object.currentMaterial() : undefined;
+				var previousMaterial = this.object && typeof this.object.currentMaterial === 'function' ? this.object.currentMaterial() : undefined;
 
-												if (this.object && typeof this.object._finalize === 'function') {
+				if (this.object && typeof this.object._finalize === 'function') {
 
-															this.object._finalize(true);
-												}
+					this.object._finalize(true);
+				}
 
-												this.object = {
-															name: name || '',
-															fromDeclaration: fromDeclaration !== false,
+				this.object = {
+					name: name || '',
+					fromDeclaration: fromDeclaration !== false,
 
-															geometry: {
-																		vertices: [],
-																		normals: [],
-																		colors: [],
-																		uvs: []
-															},
-															materials: [],
-															smooth: true,
+					geometry: {
+						vertices: [],
+						normals: [],
+						colors: [],
+						uvs: []
+					},
+					materials: [],
+					smooth: true,
 
-															startMaterial: function startMaterial(name, libraries) {
+					startMaterial: function startMaterial(name, libraries) {
 
-																		var previous = this._finalize(false);
+						var previous = this._finalize(false);
 
-																		// New usemtl declaration overwrites an inherited material, except if faces were declared
-																		// after the material, then it must be preserved for proper MultiMaterial continuation.
-																		if (previous && (previous.inherited || previous.groupCount <= 0)) {
+						// New usemtl declaration overwrites an inherited material, except if faces were declared
+						// after the material, then it must be preserved for proper MultiMaterial continuation.
+						if (previous && (previous.inherited || previous.groupCount <= 0)) {
 
-																					this.materials.splice(previous.index, 1);
-																		}
-
-																		var material = {
-																					index: this.materials.length,
-																					name: name || '',
-																					mtllib: Array.isArray(libraries) && libraries.length > 0 ? libraries[libraries.length - 1] : '',
-																					smooth: previous !== undefined ? previous.smooth : this.smooth,
-																					groupStart: previous !== undefined ? previous.groupEnd : 0,
-																					groupEnd: -1,
-																					groupCount: -1,
-																					inherited: false,
-
-																					clone: function clone(index) {
-
-																								var cloned = {
-																											index: typeof index === 'number' ? index : this.index,
-																											name: this.name,
-																											mtllib: this.mtllib,
-																											smooth: this.smooth,
-																											groupStart: 0,
-																											groupEnd: -1,
-																											groupCount: -1,
-																											inherited: false
-																								};
-																								cloned.clone = this.clone.bind(cloned);
-																								return cloned;
-																					}
-																		};
-
-																		this.materials.push(material);
-
-																		return material;
-															},
-
-															currentMaterial: function currentMaterial() {
-
-																		if (this.materials.length > 0) {
-
-																					return this.materials[this.materials.length - 1];
-																		}
-
-																		return undefined;
-															},
-
-															_finalize: function _finalize(end) {
-
-																		var lastMultiMaterial = this.currentMaterial();
-																		if (lastMultiMaterial && lastMultiMaterial.groupEnd === -1) {
-
-																					lastMultiMaterial.groupEnd = this.geometry.vertices.length / 3;
-																					lastMultiMaterial.groupCount = lastMultiMaterial.groupEnd - lastMultiMaterial.groupStart;
-																					lastMultiMaterial.inherited = false;
-																		}
-
-																		// Ignore objects tail materials if no face declarations followed them before a new o/g started.
-																		if (end && this.materials.length > 1) {
-
-																					for (var mi = this.materials.length - 1; mi >= 0; mi--) {
-
-																								if (this.materials[mi].groupCount <= 0) {
-
-																											this.materials.splice(mi, 1);
-																								}
-																					}
-																		}
-
-																		// Guarantee at least one empty material, this makes the creation later more straight forward.
-																		if (end && this.materials.length === 0) {
-
-																					this.materials.push({
-																								name: '',
-																								smooth: this.smooth
-																					});
-																		}
-
-																		return lastMultiMaterial;
-															}
-												};
-
-												// Inherit previous objects material.
-												// Spec tells us that a declared material must be set to all objects until a new material is declared.
-												// If a usemtl declaration is encountered while this new object is being parsed, it will
-												// overwrite the inherited material. Exception being that there was already face declarations
-												// to the inherited material, then it will be preserved for proper MultiMaterial continuation.
-
-												if (previousMaterial && previousMaterial.name && typeof previousMaterial.clone === 'function') {
-
-															var declared = previousMaterial.clone(0);
-															declared.inherited = true;
-															this.object.materials.push(declared);
-												}
-
-												this.objects.push(this.object);
-									},
-
-									finalize: function finalize() {
-
-												if (this.object && typeof this.object._finalize === 'function') {
-
-															this.object._finalize(true);
-												}
-									},
-
-									parseVertexIndex: function parseVertexIndex(value, len) {
-
-												var index = parseInt(value, 10);
-												return (index >= 0 ? index - 1 : index + len / 3) * 3;
-									},
-
-									parseNormalIndex: function parseNormalIndex(value, len) {
-
-												var index = parseInt(value, 10);
-												return (index >= 0 ? index - 1 : index + len / 3) * 3;
-									},
-
-									parseUVIndex: function parseUVIndex(value, len) {
-
-												var index = parseInt(value, 10);
-												return (index >= 0 ? index - 1 : index + len / 2) * 2;
-									},
-
-									addVertex: function addVertex(a, b, c) {
-
-												var src = this.vertices;
-												var dst = this.object.geometry.vertices;
-
-												dst.push(src[a + 0], src[a + 1], src[a + 2]);
-												dst.push(src[b + 0], src[b + 1], src[b + 2]);
-												dst.push(src[c + 0], src[c + 1], src[c + 2]);
-									},
-
-									addVertexPoint: function addVertexPoint(a) {
-
-												var src = this.vertices;
-												var dst = this.object.geometry.vertices;
-
-												dst.push(src[a + 0], src[a + 1], src[a + 2]);
-									},
-
-									addVertexLine: function addVertexLine(a) {
-
-												var src = this.vertices;
-												var dst = this.object.geometry.vertices;
-
-												dst.push(src[a + 0], src[a + 1], src[a + 2]);
-									},
-
-									addNormal: function addNormal(a, b, c) {
-
-												var src = this.normals;
-												var dst = this.object.geometry.normals;
-
-												dst.push(src[a + 0], src[a + 1], src[a + 2]);
-												dst.push(src[b + 0], src[b + 1], src[b + 2]);
-												dst.push(src[c + 0], src[c + 1], src[c + 2]);
-									},
-
-									addColor: function addColor(a, b, c) {
-
-												var src = this.colors;
-												var dst = this.object.geometry.colors;
-
-												dst.push(src[a + 0], src[a + 1], src[a + 2]);
-												dst.push(src[b + 0], src[b + 1], src[b + 2]);
-												dst.push(src[c + 0], src[c + 1], src[c + 2]);
-									},
-
-									addUV: function addUV(a, b, c) {
-
-												var src = this.uvs;
-												var dst = this.object.geometry.uvs;
-
-												dst.push(src[a + 0], src[a + 1]);
-												dst.push(src[b + 0], src[b + 1]);
-												dst.push(src[c + 0], src[c + 1]);
-									},
-
-									addUVLine: function addUVLine(a) {
-
-												var src = this.uvs;
-												var dst = this.object.geometry.uvs;
-
-												dst.push(src[a + 0], src[a + 1]);
-									},
-
-									addFace: function addFace(a, b, c, ua, ub, uc, na, nb, nc) {
-
-												var vLen = this.vertices.length;
-
-												var ia = this.parseVertexIndex(a, vLen);
-												var ib = this.parseVertexIndex(b, vLen);
-												var ic = this.parseVertexIndex(c, vLen);
-
-												this.addVertex(ia, ib, ic);
-
-												if (ua !== undefined && ua !== '') {
-
-															var uvLen = this.uvs.length;
-															ia = this.parseUVIndex(ua, uvLen);
-															ib = this.parseUVIndex(ub, uvLen);
-															ic = this.parseUVIndex(uc, uvLen);
-															this.addUV(ia, ib, ic);
-												}
-
-												if (na !== undefined && na !== '') {
-
-															// Normals are many times the same. If so, skip function call and parseInt.
-															var nLen = this.normals.length;
-															ia = this.parseNormalIndex(na, nLen);
-
-															ib = na === nb ? ia : this.parseNormalIndex(nb, nLen);
-															ic = na === nc ? ia : this.parseNormalIndex(nc, nLen);
-
-															this.addNormal(ia, ib, ic);
-												}
-
-												if (this.colors.length > 0) {
-
-															this.addColor(ia, ib, ic);
-												}
-									},
-
-									addPointGeometry: function addPointGeometry(vertices) {
-
-												this.object.geometry.type = 'Points';
-
-												var vLen = this.vertices.length;
-
-												for (var vi = 0, l = vertices.length; vi < l; vi++) {
-
-															this.addVertexPoint(this.parseVertexIndex(vertices[vi], vLen));
-												}
-									},
-
-									addLineGeometry: function addLineGeometry(vertices, uvs) {
-
-												this.object.geometry.type = 'Line';
-
-												var vLen = this.vertices.length;
-												var uvLen = this.uvs.length;
-
-												for (var vi = 0, l = vertices.length; vi < l; vi++) {
-
-															this.addVertexLine(this.parseVertexIndex(vertices[vi], vLen));
-												}
-
-												for (var uvi = 0, l = uvs.length; uvi < l; uvi++) {
-
-															this.addUVLine(this.parseUVIndex(uvs[uvi], uvLen));
-												}
-									}
-
-						};
-
-						state.startObject('', false);
-
-						return state;
-			}
-
-			//
-
-			function OBJLoader(manager) {
-
-						this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
-
-						this.materials = null;
-			}
-
-			OBJLoader.prototype = {
-
-						constructor: OBJLoader,
-
-						load: function load(url, onLoad, onProgress, onError) {
-
-									var scope = this;
-
-									var loader = new THREE.FileLoader(scope.manager);
-									loader.setPath(this.path);
-									loader.load(url, function (text) {
-
-												onLoad(scope.parse(text));
-									}, onProgress, onError);
-						},
-
-						setPath: function setPath(value) {
-
-									this.path = value;
-
-									return this;
-						},
-
-						setMaterials: function setMaterials(materials) {
-
-									this.materials = materials;
-
-									return this;
-						},
-
-						parse: function parse(text) {
-
-									console.time('OBJLoader');
-
-									var state = new ParserState();
-
-									if (text.indexOf('\r\n') !== -1) {
-
-												// This is faster than String.split with regex that splits on both
-												text = text.replace(/\r\n/g, '\n');
-									}
-
-									if (text.indexOf('\\\n') !== -1) {
-
-												// join lines separated by a line continuation character (\)
-												text = text.replace(/\\\n/g, '');
-									}
-
-									var lines = text.split('\n');
-									var line = '',
-									    lineFirstChar = '';
-									var lineLength = 0;
-									var result = [];
-
-									// Faster to just trim left side of the line. Use if available.
-									var trimLeft = typeof ''.trimLeft === 'function';
-
-									for (var i = 0, l = lines.length; i < l; i++) {
-
-												line = lines[i];
-
-												line = trimLeft ? line.trimLeft() : line.trim();
-
-												lineLength = line.length;
-
-												if (lineLength === 0) continue;
-
-												lineFirstChar = line.charAt(0);
-
-												// @todo invoke passed in handler if any
-												if (lineFirstChar === '#') continue;
-
-												if (lineFirstChar === 'v') {
-
-															var data = line.split(/\s+/);
-
-															switch (data[0]) {
-
-																		case 'v':
-																					state.vertices.push(parseFloat(data[1]), parseFloat(data[2]), parseFloat(data[3]));
-																					if (data.length === 8) {
-
-																								state.colors.push(parseFloat(data[4]), parseFloat(data[5]), parseFloat(data[6]));
-																					}
-																					break;
-																		case 'vn':
-																					state.normals.push(parseFloat(data[1]), parseFloat(data[2]), parseFloat(data[3]));
-																					break;
-																		case 'vt':
-																					state.uvs.push(parseFloat(data[1]), parseFloat(data[2]));
-																					break;
-
-															}
-												} else if (lineFirstChar === 'f') {
-
-															var lineData = line.substr(1).trim();
-															var vertexData = lineData.split(/\s+/);
-															var faceVertices = [];
-
-															// Parse the face vertex data into an easy to work with format
-
-															for (var j = 0, jl = vertexData.length; j < jl; j++) {
-
-																		var vertex = vertexData[j];
-
-																		if (vertex.length > 0) {
-
-																					var vertexParts = vertex.split('/');
-																					faceVertices.push(vertexParts);
-																		}
-															}
-
-															// Draw an edge between the first vertex and all subsequent vertices to form an n-gon
-
-															var v1 = faceVertices[0];
-
-															for (var j = 1, jl = faceVertices.length - 1; j < jl; j++) {
-
-																		var v2 = faceVertices[j];
-																		var v3 = faceVertices[j + 1];
-
-																		state.addFace(v1[0], v2[0], v3[0], v1[1], v2[1], v3[1], v1[2], v2[2], v3[2]);
-															}
-												} else if (lineFirstChar === 'l') {
-
-															var lineParts = line.substring(1).trim().split(" ");
-															var lineVertices = [],
-															    lineUVs = [];
-
-															if (line.indexOf("/") === -1) {
-
-																		lineVertices = lineParts;
-															} else {
-
-																		for (var li = 0, llen = lineParts.length; li < llen; li++) {
-
-																					var parts = lineParts[li].split("/");
-
-																					if (parts[0] !== "") lineVertices.push(parts[0]);
-																					if (parts[1] !== "") lineUVs.push(parts[1]);
-																		}
-															}
-															state.addLineGeometry(lineVertices, lineUVs);
-												} else if (lineFirstChar === 'p') {
-
-															var lineData = line.substr(1).trim();
-															var pointData = lineData.split(" ");
-
-															state.addPointGeometry(pointData);
-												} else if ((result = object_pattern.exec(line)) !== null) {
-
-															// o object_name
-															// or
-															// g group_name
-
-															// WORKAROUND: https://bugs.chromium.org/p/v8/issues/detail?id=2869
-															// var name = result[ 0 ].substr( 1 ).trim();
-															var name = (" " + result[0].substr(1).trim()).substr(1);
-
-															state.startObject(name);
-												} else if (material_use_pattern.test(line)) {
-
-															// material
-
-															state.object.startMaterial(line.substring(7).trim(), state.materialLibraries);
-												} else if (material_library_pattern.test(line)) {
-
-															// mtl file
-
-															state.materialLibraries.push(line.substring(7).trim());
-												} else if (lineFirstChar === 's') {
-
-															result = line.split(' ');
-
-															// smooth shading
-
-															// @todo Handle files that have varying smooth values for a set of faces inside one geometry,
-															// but does not define a usemtl for each face set.
-															// This should be detected and a dummy material created (later MultiMaterial and geometry groups).
-															// This requires some care to not create extra material on each smooth value for "normal" obj files.
-															// where explicit usemtl defines geometry groups.
-															// Example asset: examples/models/obj/cerberus/Cerberus.obj
-
-															/*
-                * http://paulbourke.net/dataformats/obj/
-                * or
-                * http://www.cs.utah.edu/~boulos/cs3505/obj_spec.pdf
-                *
-                * From chapter "Grouping" Syntax explanation "s group_number":
-                * "group_number is the smoothing group number. To turn off smoothing groups, use a value of 0 or off.
-                * Polygonal elements use group numbers to put elements in different smoothing groups. For free-form
-                * surfaces, smoothing groups are either turned on or off; there is no difference between values greater
-                * than 0."
-                */
-															if (result.length > 1) {
-
-																		var value = result[1].trim().toLowerCase();
-																		state.object.smooth = value !== '0' && value !== 'off';
-															} else {
-
-																		// ZBrush can produce "s" lines #11707
-																		state.object.smooth = true;
-															}
-															var material = state.object.currentMaterial();
-															if (material) material.smooth = state.object.smooth;
-												} else {
-
-															// Handle null terminated files without exception
-															if (line === '\0') continue;
-
-															throw new Error('THREE.OBJLoader: Unexpected line: "' + line + '"');
-												}
-									}
-
-									state.finalize();
-
-									var container = new THREE.Group();
-									container.materialLibraries = [].concat(state.materialLibraries);
-
-									for (var i = 0, l = state.objects.length; i < l; i++) {
-
-												var object = state.objects[i];
-												var geometry = object.geometry;
-												var materials = object.materials;
-												var isLine = geometry.type === 'Line';
-												var isPoints = geometry.type === 'Points';
-												var hasVertexColors = false;
-
-												// Skip o/g line declarations that did not follow with any faces
-												if (geometry.vertices.length === 0) continue;
-
-												var buffergeometry = new THREE.BufferGeometry();
-
-												buffergeometry.addAttribute('position', new THREE.Float32BufferAttribute(geometry.vertices, 3));
-
-												if (geometry.normals.length > 0) {
-
-															buffergeometry.addAttribute('normal', new THREE.Float32BufferAttribute(geometry.normals, 3));
-												} else {
-
-															buffergeometry.computeVertexNormals();
-												}
-
-												if (geometry.colors.length > 0) {
-
-															hasVertexColors = true;
-															buffergeometry.addAttribute('color', new THREE.Float32BufferAttribute(geometry.colors, 3));
-												}
-
-												if (geometry.uvs.length > 0) {
-
-															buffergeometry.addAttribute('uv', new THREE.Float32BufferAttribute(geometry.uvs, 2));
-												}
-
-												// Create materials
-
-												var createdMaterials = [];
-
-												for (var mi = 0, miLen = materials.length; mi < miLen; mi++) {
-
-															var sourceMaterial = materials[mi];
-															var material = undefined;
-
-															if (this.materials !== null) {
-
-																		material = this.materials.create(sourceMaterial.name);
-
-																		// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
-																		if (isLine && material && !(material instanceof THREE.LineBasicMaterial)) {
-
-																					var materialLine = new THREE.LineBasicMaterial();
-																					materialLine.copy(material);
-																					materialLine.lights = false; // TOFIX
-																					material = materialLine;
-																		} else if (isPoints && material && !(material instanceof THREE.PointsMaterial)) {
-
-																					var materialPoints = new THREE.PointsMaterial({ size: 10, sizeAttenuation: false });
-																					materialLine.copy(material);
-																					material = materialPoints;
-																		}
-															}
-
-															if (!material) {
-
-																		if (isLine) {
-
-																					material = new THREE.LineBasicMaterial();
-																		} else if (isPoints) {
-
-																					material = new THREE.PointsMaterial({ size: 1, sizeAttenuation: false });
-																		} else {
-
-																					material = new THREE.MeshPhongMaterial();
-																		}
-
-																		material.name = sourceMaterial.name;
-															}
-
-															material.flatShading = sourceMaterial.smooth ? false : true;
-															material.vertexColors = hasVertexColors ? THREE.VertexColors : THREE.NoColors;
-
-															createdMaterials.push(material);
-												}
-
-												// Create mesh
-
-												var mesh;
-
-												if (createdMaterials.length > 1) {
-
-															for (var mi = 0, miLen = materials.length; mi < miLen; mi++) {
-
-																		var sourceMaterial = materials[mi];
-																		buffergeometry.addGroup(sourceMaterial.groupStart, sourceMaterial.groupCount, mi);
-															}
-
-															if (isLine) {
-
-																		mesh = new THREE.LineSegments(buffergeometry, createdMaterials);
-															} else if (isPoints) {
-
-																		mesh = new THREE.Points(buffergeometry, createdMaterials);
-															} else {
-
-																		mesh = new THREE.Mesh(buffergeometry, createdMaterials);
-															}
-												} else {
-
-															if (isLine) {
-
-																		mesh = new THREE.LineSegments(buffergeometry, createdMaterials[0]);
-															} else if (isPoints) {
-
-																		mesh = new THREE.Points(buffergeometry, createdMaterials[0]);
-															} else {
-
-																		mesh = new THREE.Mesh(buffergeometry, createdMaterials[0]);
-															}
-												}
-
-												mesh.name = object.name;
-
-												container.add(mesh);
-									}
-
-									console.timeEnd('OBJLoader');
-
-									return container;
+							this.materials.splice(previous.index, 1);
 						}
 
-			};
+						var material = {
+							index: this.materials.length,
+							name: name || '',
+							mtllib: Array.isArray(libraries) && libraries.length > 0 ? libraries[libraries.length - 1] : '',
+							smooth: previous !== undefined ? previous.smooth : this.smooth,
+							groupStart: previous !== undefined ? previous.groupEnd : 0,
+							groupEnd: -1,
+							groupCount: -1,
+							inherited: false,
 
-			return OBJLoader;
+							clone: function clone(index) {
+
+								var cloned = {
+									index: typeof index === 'number' ? index : this.index,
+									name: this.name,
+									mtllib: this.mtllib,
+									smooth: this.smooth,
+									groupStart: 0,
+									groupEnd: -1,
+									groupCount: -1,
+									inherited: false
+								};
+								cloned.clone = this.clone.bind(cloned);
+								return cloned;
+							}
+						};
+
+						this.materials.push(material);
+
+						return material;
+					},
+
+					currentMaterial: function currentMaterial() {
+
+						if (this.materials.length > 0) {
+
+							return this.materials[this.materials.length - 1];
+						}
+
+						return undefined;
+					},
+
+					_finalize: function _finalize(end) {
+
+						var lastMultiMaterial = this.currentMaterial();
+						if (lastMultiMaterial && lastMultiMaterial.groupEnd === -1) {
+
+							lastMultiMaterial.groupEnd = this.geometry.vertices.length / 3;
+							lastMultiMaterial.groupCount = lastMultiMaterial.groupEnd - lastMultiMaterial.groupStart;
+							lastMultiMaterial.inherited = false;
+						}
+
+						// Ignore objects tail materials if no face declarations followed them before a new o/g started.
+						if (end && this.materials.length > 1) {
+
+							for (var mi = this.materials.length - 1; mi >= 0; mi--) {
+
+								if (this.materials[mi].groupCount <= 0) {
+
+									this.materials.splice(mi, 1);
+								}
+							}
+						}
+
+						// Guarantee at least one empty material, this makes the creation later more straight forward.
+						if (end && this.materials.length === 0) {
+
+							this.materials.push({
+								name: '',
+								smooth: this.smooth
+							});
+						}
+
+						return lastMultiMaterial;
+					}
+				};
+
+				// Inherit previous objects material.
+				// Spec tells us that a declared material must be set to all objects until a new material is declared.
+				// If a usemtl declaration is encountered while this new object is being parsed, it will
+				// overwrite the inherited material. Exception being that there was already face declarations
+				// to the inherited material, then it will be preserved for proper MultiMaterial continuation.
+
+				if (previousMaterial && previousMaterial.name && typeof previousMaterial.clone === 'function') {
+
+					var declared = previousMaterial.clone(0);
+					declared.inherited = true;
+					this.object.materials.push(declared);
+				}
+
+				this.objects.push(this.object);
+			},
+
+			finalize: function finalize() {
+
+				if (this.object && typeof this.object._finalize === 'function') {
+
+					this.object._finalize(true);
+				}
+			},
+
+			parseVertexIndex: function parseVertexIndex(value, len) {
+
+				var index = parseInt(value, 10);
+				return (index >= 0 ? index - 1 : index + len / 3) * 3;
+			},
+
+			parseNormalIndex: function parseNormalIndex(value, len) {
+
+				var index = parseInt(value, 10);
+				return (index >= 0 ? index - 1 : index + len / 3) * 3;
+			},
+
+			parseUVIndex: function parseUVIndex(value, len) {
+
+				var index = parseInt(value, 10);
+				return (index >= 0 ? index - 1 : index + len / 2) * 2;
+			},
+
+			addVertex: function addVertex(a, b, c) {
+
+				var src = this.vertices;
+				var dst = this.object.geometry.vertices;
+
+				dst.push(src[a + 0], src[a + 1], src[a + 2]);
+				dst.push(src[b + 0], src[b + 1], src[b + 2]);
+				dst.push(src[c + 0], src[c + 1], src[c + 2]);
+			},
+
+			addVertexPoint: function addVertexPoint(a) {
+
+				var src = this.vertices;
+				var dst = this.object.geometry.vertices;
+
+				dst.push(src[a + 0], src[a + 1], src[a + 2]);
+			},
+
+			addVertexLine: function addVertexLine(a) {
+
+				var src = this.vertices;
+				var dst = this.object.geometry.vertices;
+
+				dst.push(src[a + 0], src[a + 1], src[a + 2]);
+			},
+
+			addNormal: function addNormal(a, b, c) {
+
+				var src = this.normals;
+				var dst = this.object.geometry.normals;
+
+				dst.push(src[a + 0], src[a + 1], src[a + 2]);
+				dst.push(src[b + 0], src[b + 1], src[b + 2]);
+				dst.push(src[c + 0], src[c + 1], src[c + 2]);
+			},
+
+			addColor: function addColor(a, b, c) {
+
+				var src = this.colors;
+				var dst = this.object.geometry.colors;
+
+				dst.push(src[a + 0], src[a + 1], src[a + 2]);
+				dst.push(src[b + 0], src[b + 1], src[b + 2]);
+				dst.push(src[c + 0], src[c + 1], src[c + 2]);
+			},
+
+			addUV: function addUV(a, b, c) {
+
+				var src = this.uvs;
+				var dst = this.object.geometry.uvs;
+
+				dst.push(src[a + 0], src[a + 1]);
+				dst.push(src[b + 0], src[b + 1]);
+				dst.push(src[c + 0], src[c + 1]);
+			},
+
+			addUVLine: function addUVLine(a) {
+
+				var src = this.uvs;
+				var dst = this.object.geometry.uvs;
+
+				dst.push(src[a + 0], src[a + 1]);
+			},
+
+			addFace: function addFace(a, b, c, ua, ub, uc, na, nb, nc) {
+
+				var vLen = this.vertices.length;
+
+				var ia = this.parseVertexIndex(a, vLen);
+				var ib = this.parseVertexIndex(b, vLen);
+				var ic = this.parseVertexIndex(c, vLen);
+
+				this.addVertex(ia, ib, ic);
+
+				if (ua !== undefined && ua !== '') {
+
+					var uvLen = this.uvs.length;
+					ia = this.parseUVIndex(ua, uvLen);
+					ib = this.parseUVIndex(ub, uvLen);
+					ic = this.parseUVIndex(uc, uvLen);
+					this.addUV(ia, ib, ic);
+				}
+
+				if (na !== undefined && na !== '') {
+
+					// Normals are many times the same. If so, skip function call and parseInt.
+					var nLen = this.normals.length;
+					ia = this.parseNormalIndex(na, nLen);
+
+					ib = na === nb ? ia : this.parseNormalIndex(nb, nLen);
+					ic = na === nc ? ia : this.parseNormalIndex(nc, nLen);
+
+					this.addNormal(ia, ib, ic);
+				}
+
+				if (this.colors.length > 0) {
+
+					this.addColor(ia, ib, ic);
+				}
+			},
+
+			addPointGeometry: function addPointGeometry(vertices) {
+
+				this.object.geometry.type = 'Points';
+
+				var vLen = this.vertices.length;
+
+				for (var vi = 0, l = vertices.length; vi < l; vi++) {
+
+					this.addVertexPoint(this.parseVertexIndex(vertices[vi], vLen));
+				}
+			},
+
+			addLineGeometry: function addLineGeometry(vertices, uvs) {
+
+				this.object.geometry.type = 'Line';
+
+				var vLen = this.vertices.length;
+				var uvLen = this.uvs.length;
+
+				for (var vi = 0, l = vertices.length; vi < l; vi++) {
+
+					this.addVertexLine(this.parseVertexIndex(vertices[vi], vLen));
+				}
+
+				for (var uvi = 0, l = uvs.length; uvi < l; uvi++) {
+
+					this.addUVLine(this.parseUVIndex(uvs[uvi], uvLen));
+				}
+			}
+
+		};
+
+		state.startObject('', false);
+
+		return state;
+	}
+
+	//
+
+	function OBJLoader(manager) {
+
+		this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
+
+		this.materials = null;
+	}
+
+	OBJLoader.prototype = {
+
+		constructor: OBJLoader,
+
+		load: function load(url, onLoad, onProgress, onError) {
+
+			var scope = this;
+
+			var loader = new THREE.FileLoader(scope.manager);
+			loader.setPath(this.path);
+			loader.load(url, function (text) {
+
+				onLoad(scope.parse(text));
+			}, onProgress, onError);
+		},
+
+		setPath: function setPath(value) {
+
+			this.path = value;
+
+			return this;
+		},
+
+		setMaterials: function setMaterials(materials) {
+
+			this.materials = materials;
+
+			return this;
+		},
+
+		parse: function parse(text) {
+
+			console.time('OBJLoader');
+
+			var state = new ParserState();
+
+			if (text.indexOf('\r\n') !== -1) {
+
+				// This is faster than String.split with regex that splits on both
+				text = text.replace(/\r\n/g, '\n');
+			}
+
+			if (text.indexOf('\\\n') !== -1) {
+
+				// join lines separated by a line continuation character (\)
+				text = text.replace(/\\\n/g, '');
+			}
+
+			var lines = text.split('\n');
+			var line = '',
+			    lineFirstChar = '';
+			var lineLength = 0;
+			var result = [];
+
+			// Faster to just trim left side of the line. Use if available.
+			var trimLeft = typeof ''.trimLeft === 'function';
+
+			for (var i = 0, l = lines.length; i < l; i++) {
+
+				line = lines[i];
+
+				line = trimLeft ? line.trimLeft() : line.trim();
+
+				lineLength = line.length;
+
+				if (lineLength === 0) continue;
+
+				lineFirstChar = line.charAt(0);
+
+				// @todo invoke passed in handler if any
+				if (lineFirstChar === '#') continue;
+
+				if (lineFirstChar === 'v') {
+
+					var data = line.split(/\s+/);
+
+					switch (data[0]) {
+
+						case 'v':
+							state.vertices.push(parseFloat(data[1]), parseFloat(data[2]), parseFloat(data[3]));
+							if (data.length === 8) {
+
+								state.colors.push(parseFloat(data[4]), parseFloat(data[5]), parseFloat(data[6]));
+							}
+							break;
+						case 'vn':
+							state.normals.push(parseFloat(data[1]), parseFloat(data[2]), parseFloat(data[3]));
+							break;
+						case 'vt':
+							state.uvs.push(parseFloat(data[1]), parseFloat(data[2]));
+							break;
+
+					}
+				} else if (lineFirstChar === 'f') {
+
+					var lineData = line.substr(1).trim();
+					var vertexData = lineData.split(/\s+/);
+					var faceVertices = [];
+
+					// Parse the face vertex data into an easy to work with format
+
+					for (var j = 0, jl = vertexData.length; j < jl; j++) {
+
+						var vertex = vertexData[j];
+
+						if (vertex.length > 0) {
+
+							var vertexParts = vertex.split('/');
+							faceVertices.push(vertexParts);
+						}
+					}
+
+					// Draw an edge between the first vertex and all subsequent vertices to form an n-gon
+
+					var v1 = faceVertices[0];
+
+					for (var j = 1, jl = faceVertices.length - 1; j < jl; j++) {
+
+						var v2 = faceVertices[j];
+						var v3 = faceVertices[j + 1];
+
+						state.addFace(v1[0], v2[0], v3[0], v1[1], v2[1], v3[1], v1[2], v2[2], v3[2]);
+					}
+				} else if (lineFirstChar === 'l') {
+
+					var lineParts = line.substring(1).trim().split(" ");
+					var lineVertices = [],
+					    lineUVs = [];
+
+					if (line.indexOf("/") === -1) {
+
+						lineVertices = lineParts;
+					} else {
+
+						for (var li = 0, llen = lineParts.length; li < llen; li++) {
+
+							var parts = lineParts[li].split("/");
+
+							if (parts[0] !== "") lineVertices.push(parts[0]);
+							if (parts[1] !== "") lineUVs.push(parts[1]);
+						}
+					}
+					state.addLineGeometry(lineVertices, lineUVs);
+				} else if (lineFirstChar === 'p') {
+
+					var lineData = line.substr(1).trim();
+					var pointData = lineData.split(" ");
+
+					state.addPointGeometry(pointData);
+				} else if ((result = object_pattern.exec(line)) !== null) {
+
+					// o object_name
+					// or
+					// g group_name
+
+					// WORKAROUND: https://bugs.chromium.org/p/v8/issues/detail?id=2869
+					// var name = result[ 0 ].substr( 1 ).trim();
+					var name = (" " + result[0].substr(1).trim()).substr(1);
+
+					state.startObject(name);
+				} else if (material_use_pattern.test(line)) {
+
+					// material
+
+					state.object.startMaterial(line.substring(7).trim(), state.materialLibraries);
+				} else if (material_library_pattern.test(line)) {
+
+					// mtl file
+
+					state.materialLibraries.push(line.substring(7).trim());
+				} else if (lineFirstChar === 's') {
+
+					result = line.split(' ');
+
+					// smooth shading
+
+					// @todo Handle files that have varying smooth values for a set of faces inside one geometry,
+					// but does not define a usemtl for each face set.
+					// This should be detected and a dummy material created (later MultiMaterial and geometry groups).
+					// This requires some care to not create extra material on each smooth value for "normal" obj files.
+					// where explicit usemtl defines geometry groups.
+					// Example asset: examples/models/obj/cerberus/Cerberus.obj
+
+					/*
+      * http://paulbourke.net/dataformats/obj/
+      * or
+      * http://www.cs.utah.edu/~boulos/cs3505/obj_spec.pdf
+      *
+      * From chapter "Grouping" Syntax explanation "s group_number":
+      * "group_number is the smoothing group number. To turn off smoothing groups, use a value of 0 or off.
+      * Polygonal elements use group numbers to put elements in different smoothing groups. For free-form
+      * surfaces, smoothing groups are either turned on or off; there is no difference between values greater
+      * than 0."
+      */
+					if (result.length > 1) {
+
+						var value = result[1].trim().toLowerCase();
+						state.object.smooth = value !== '0' && value !== 'off';
+					} else {
+
+						// ZBrush can produce "s" lines #11707
+						state.object.smooth = true;
+					}
+					var material = state.object.currentMaterial();
+					if (material) material.smooth = state.object.smooth;
+				} else {
+
+					// Handle null terminated files without exception
+					if (line === '\0') continue;
+
+					throw new Error('THREE.OBJLoader: Unexpected line: "' + line + '"');
+				}
+			}
+
+			state.finalize();
+
+			var container = new THREE.Group();
+			container.materialLibraries = [].concat(state.materialLibraries);
+
+			for (var i = 0, l = state.objects.length; i < l; i++) {
+
+				var object = state.objects[i];
+				var geometry = object.geometry;
+				var materials = object.materials;
+				var isLine = geometry.type === 'Line';
+				var isPoints = geometry.type === 'Points';
+				var hasVertexColors = false;
+
+				// Skip o/g line declarations that did not follow with any faces
+				if (geometry.vertices.length === 0) continue;
+
+				var buffergeometry = new THREE.BufferGeometry();
+
+				buffergeometry.addAttribute('position', new THREE.Float32BufferAttribute(geometry.vertices, 3));
+
+				if (geometry.normals.length > 0) {
+
+					buffergeometry.addAttribute('normal', new THREE.Float32BufferAttribute(geometry.normals, 3));
+				} else {
+
+					buffergeometry.computeVertexNormals();
+				}
+
+				if (geometry.colors.length > 0) {
+
+					hasVertexColors = true;
+					buffergeometry.addAttribute('color', new THREE.Float32BufferAttribute(geometry.colors, 3));
+				}
+
+				if (geometry.uvs.length > 0) {
+
+					buffergeometry.addAttribute('uv', new THREE.Float32BufferAttribute(geometry.uvs, 2));
+				}
+
+				// Create materials
+
+				var createdMaterials = [];
+
+				for (var mi = 0, miLen = materials.length; mi < miLen; mi++) {
+
+					var sourceMaterial = materials[mi];
+					var material = undefined;
+
+					if (this.materials !== null) {
+
+						material = this.materials.create(sourceMaterial.name);
+
+						// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
+						if (isLine && material && !(material instanceof THREE.LineBasicMaterial)) {
+
+							var materialLine = new THREE.LineBasicMaterial();
+							materialLine.copy(material);
+							materialLine.lights = false; // TOFIX
+							material = materialLine;
+						} else if (isPoints && material && !(material instanceof THREE.PointsMaterial)) {
+
+							var materialPoints = new THREE.PointsMaterial({ size: 10, sizeAttenuation: false });
+							materialLine.copy(material);
+							material = materialPoints;
+						}
+					}
+
+					if (!material) {
+
+						if (isLine) {
+
+							material = new THREE.LineBasicMaterial();
+						} else if (isPoints) {
+
+							material = new THREE.PointsMaterial({ size: 1, sizeAttenuation: false });
+						} else {
+
+							material = new THREE.MeshPhongMaterial();
+						}
+
+						material.name = sourceMaterial.name;
+					}
+
+					material.flatShading = sourceMaterial.smooth ? false : true;
+					material.vertexColors = hasVertexColors ? THREE.VertexColors : THREE.NoColors;
+
+					createdMaterials.push(material);
+				}
+
+				// Create mesh
+
+				var mesh;
+
+				if (createdMaterials.length > 1) {
+
+					for (var mi = 0, miLen = materials.length; mi < miLen; mi++) {
+
+						var sourceMaterial = materials[mi];
+						buffergeometry.addGroup(sourceMaterial.groupStart, sourceMaterial.groupCount, mi);
+					}
+
+					if (isLine) {
+
+						mesh = new THREE.LineSegments(buffergeometry, createdMaterials);
+					} else if (isPoints) {
+
+						mesh = new THREE.Points(buffergeometry, createdMaterials);
+					} else {
+
+						mesh = new THREE.Mesh(buffergeometry, createdMaterials);
+					}
+				} else {
+
+					if (isLine) {
+
+						mesh = new THREE.LineSegments(buffergeometry, createdMaterials[0]);
+					} else if (isPoints) {
+
+						mesh = new THREE.Points(buffergeometry, createdMaterials[0]);
+					} else {
+
+						mesh = new THREE.Mesh(buffergeometry, createdMaterials[0]);
+					}
+				}
+
+				mesh.name = object.name;
+
+				container.add(mesh);
+			}
+
+			console.timeEnd('OBJLoader');
+
+			return container;
+		}
+
+	};
+
+	return OBJLoader;
 }();
 
 var WEBVR = {
 
-			createButton: function createButton(renderer, options) {
+	createButton: function createButton(renderer, options) {
 
-						function showEnterVR(device) {
+		function showEnterVR(device) {
 
-									button.style.display = '';
+			button.style.display = '';
 
-									button.style.cursor = 'pointer';
-									button.style.left = 'calc(50% - 150px)';
-									button.style.width = '100px';
+			button.style.cursor = 'pointer';
+			button.style.left = 'calc(50% - 150px)';
+			button.style.width = '100px';
 
-									button.textContent = 'ENTER VR';
+			button.textContent = 'ENTER VR';
 
-									button.onmouseenter = function () {
-												button.style.opacity = '1.0';
-									};
-									button.onmouseleave = function () {
-												button.style.opacity = '0.5';
-									};
+			button.onmouseenter = function () {
+				button.style.opacity = '1.0';
+			};
+			button.onmouseleave = function () {
+				button.style.opacity = '0.5';
+			};
 
-									button.onclick = function () {
+			button.onclick = function () {
 
-												device.isPresenting ? device.exitPresent() : device.requestPresent([{ source: renderer.domElement }]);
-									};
+				device.isPresenting ? device.exitPresent() : device.requestPresent([{ source: renderer.domElement }]);
+			};
 
-									renderer.vr.setDevice(device);
-						}
+			renderer.vr.setDevice(device);
+		}
 
-						function showEnterXR(device) {
+		function showEnterXR(device) {
 
-									var currentSession = null;
+			var currentSession = null;
 
-									function onSessionStarted(session) {
+			function onSessionStarted(session) {
 
-												if (options === undefined) options = {};
-												if (options.frameOfReferenceType === undefined) options.frameOfReferenceType = 'stage';
+				if (options === undefined) options = {};
+				if (options.frameOfReferenceType === undefined) options.frameOfReferenceType = 'stage';
 
-												session.addEventListener('end', onSessionEnded);
+				session.addEventListener('end', onSessionEnded);
 
-												renderer.vr.setSession(session, options);
-												button.textContent = 'EXIT XR';
+				renderer.vr.setSession(session, options);
+				button.textContent = 'EXIT XR';
 
-												currentSession = session;
-									}
-
-									function onSessionEnded(event) {
-
-												currentSession.removeEventListener('end', onSessionEnded);
-
-												renderer.vr.setSession(null);
-												button.textContent = 'ENTER XR';
-
-												currentSession = null;
-									}
-
-									//
-
-									button.style.display = '';
-
-									button.style.cursor = 'pointer';
-									button.style.left = 'calc(50% - 50px)';
-									button.style.width = '100px';
-
-									button.textContent = 'ENTER XR';
-
-									button.onmouseenter = function () {
-												button.style.opacity = '1.0';
-									};
-									button.onmouseleave = function () {
-												button.style.opacity = '0.5';
-									};
-
-									button.onclick = function () {
-
-												if (currentSession === null) {
-
-															device.requestSession({ exclusive: true }).then(onSessionStarted);
-												} else {
-
-															currentSession.end();
-												}
-									};
-
-									renderer.vr.setDevice(device);
-						}
-
-						function showVRNotFound() {
-
-									button.style.display = '';
-
-									button.style.cursor = 'auto';
-									button.style.left = 'calc(50% - 75px)';
-									button.style.width = '150px';
-
-									button.textContent = 'VR NOT FOUND';
-
-									button.onmouseenter = null;
-									button.onmouseleave = null;
-
-									button.onclick = null;
-
-									renderer.vr.setDevice(null);
-						}
-
-						function stylizeElement(element) {
-
-									element.style.position = 'absolute';
-									element.style.bottom = '20px';
-									element.style.padding = '12px 6px';
-									element.style.border = '1px solid #fff';
-									element.style.borderRadius = '4px';
-									element.style.background = 'black';
-									element.style.color = '#fff';
-									element.style.font = 'normal 13px sans-serif';
-									element.style.textAlign = 'center';
-									element.style.opacity = '0.5';
-									element.style.outline = 'none';
-									element.style.zIndex = '999';
-						}
-
-						var isWebXR = false;
-
-						if ('xr' in navigator) {
-
-									isWebXR = true;
-
-									var button = document.createElement('button');
-									button.style.display = 'none';
-
-									stylizeElement(button);
-
-									navigator.xr.requestDevice().then(function (device) {
-
-												device.supportsSession({ exclusive: true }).then(function () {
-
-															showEnterXR(device);
-												}).catch(showVRNotFound);
-									}).catch(showVRNotFound);
-
-									return button;
-						} else if ('getVRDisplays' in navigator) {
-
-									var button = document.createElement('button');
-									button.style.display = 'none';
-
-									stylizeElement(button);
-
-									window.addEventListener('vrdisplayconnect', function (event) {
-
-												showEnterVR(event.display);
-									}, false);
-
-									window.addEventListener('vrdisplaydisconnect', function (event) {
-
-												showVRNotFound();
-									}, false);
-
-									window.addEventListener('vrdisplaypresentchange', function (event) {
-
-												button.textContent = event.display.isPresenting ? 'EXIT VR' : 'ENTER VR';
-									}, false);
-
-									window.addEventListener('vrdisplayactivate', function (event) {
-
-												event.display.requestPresent([{ source: renderer.domElement }]);
-									}, false);
-
-									navigator.getVRDisplays().then(function (displays) {
-
-												if (displays.length > 0) {
-
-															showEnterVR(displays[0]);
-												} else {
-
-															showVRNotFound();
-												}
-									});
-
-									return button;
-						} else {
-
-									var message = document.createElement('a');
-									message.href = 'https://webvr.info';
-									message.innerHTML = 'WEBVR NOT SUPPORTED';
-
-									message.style.left = 'calc(50% - 90px)';
-									message.style.width = '180px';
-									message.style.textDecoration = 'none';
-
-									stylizeElement(message);
-
-									return message;
-						}
-			},
-
-			// DEPRECATED
-
-			checkAvailability: function checkAvailability() {
-						console.warn('WEBVR.checkAvailability has been deprecated.');
-						return new Promise(function () {});
-			},
-
-			getMessageContainer: function getMessageContainer() {
-						console.warn('WEBVR.getMessageContainer has been deprecated.');
-						return document.createElement('div');
-			},
-
-			getButton: function getButton() {
-						console.warn('WEBVR.getButton has been deprecated.');
-						return document.createElement('div');
-			},
-
-			getVRDisplay: function getVRDisplay() {
-						console.warn('WEBVR.getVRDisplay has been deprecated.');
+				currentSession = session;
 			}
+
+			function onSessionEnded(event) {
+
+				currentSession.removeEventListener('end', onSessionEnded);
+
+				renderer.vr.setSession(null);
+				button.textContent = 'ENTER XR';
+
+				currentSession = null;
+			}
+
+			//
+
+			button.style.display = '';
+
+			button.style.cursor = 'pointer';
+			button.style.left = 'calc(50% - 50px)';
+			button.style.width = '100px';
+
+			button.textContent = 'ENTER XR';
+
+			button.onmouseenter = function () {
+				button.style.opacity = '1.0';
+			};
+			button.onmouseleave = function () {
+				button.style.opacity = '0.5';
+			};
+
+			button.onclick = function () {
+
+				if (currentSession === null) {
+
+					device.requestSession({ exclusive: true }).then(onSessionStarted);
+				} else {
+
+					currentSession.end();
+				}
+			};
+
+			renderer.vr.setDevice(device);
+		}
+
+		function showVRNotFound() {
+
+			button.style.display = '';
+
+			button.style.cursor = 'auto';
+			button.style.left = 'calc(50% - 75px)';
+			button.style.width = '150px';
+
+			button.textContent = 'VR NOT FOUND';
+
+			button.onmouseenter = null;
+			button.onmouseleave = null;
+
+			button.onclick = null;
+
+			renderer.vr.setDevice(null);
+		}
+
+		function stylizeElement(element) {
+
+			element.style.position = 'absolute';
+			element.style.bottom = '20px';
+			element.style.padding = '12px 6px';
+			element.style.border = '1px solid #fff';
+			element.style.borderRadius = '4px';
+			element.style.background = 'black';
+			element.style.color = '#fff';
+			element.style.font = 'normal 13px sans-serif';
+			element.style.textAlign = 'center';
+			element.style.opacity = '0.5';
+			element.style.outline = 'none';
+			element.style.zIndex = '999';
+		}
+
+		var isWebXR = false;
+
+		if ('xr' in navigator) {
+
+			isWebXR = true;
+
+			var button = document.createElement('button');
+			button.style.display = 'none';
+
+			stylizeElement(button);
+
+			navigator.xr.requestDevice().then(function (device) {
+
+				device.supportsSession({ exclusive: true }).then(function () {
+
+					showEnterXR(device);
+				}).catch(showVRNotFound);
+			}).catch(showVRNotFound);
+
+			return button;
+		} else if ('getVRDisplays' in navigator) {
+
+			var button = document.createElement('button');
+			button.style.display = 'none';
+
+			stylizeElement(button);
+
+			window.addEventListener('vrdisplayconnect', function (event) {
+
+				showEnterVR(event.display);
+			}, false);
+
+			window.addEventListener('vrdisplaydisconnect', function (event) {
+
+				showVRNotFound();
+			}, false);
+
+			window.addEventListener('vrdisplaypresentchange', function (event) {
+
+				button.textContent = event.display.isPresenting ? 'EXIT VR' : 'ENTER VR';
+			}, false);
+
+			window.addEventListener('vrdisplayactivate', function (event) {
+
+				event.display.requestPresent([{ source: renderer.domElement }]);
+			}, false);
+
+			navigator.getVRDisplays().then(function (displays) {
+
+				if (displays.length > 0) {
+
+					showEnterVR(displays[0]);
+				} else {
+
+					showVRNotFound();
+				}
+			});
+
+			return button;
+		} else {
+
+			var message = document.createElement('a');
+			message.href = 'https://webvr.info';
+			message.innerHTML = 'WEBVR NOT SUPPORTED';
+
+			message.style.left = 'calc(50% - 90px)';
+			message.style.width = '180px';
+			message.style.textDecoration = 'none';
+
+			stylizeElement(message);
+
+			return message;
+		}
+	},
+
+	// DEPRECATED
+
+	checkAvailability: function checkAvailability() {
+		console.warn('WEBVR.checkAvailability has been deprecated.');
+		return new Promise(function () {});
+	},
+
+	getMessageContainer: function getMessageContainer() {
+		console.warn('WEBVR.getMessageContainer has been deprecated.');
+		return document.createElement('div');
+	},
+
+	getButton: function getButton() {
+		console.warn('WEBVR.getButton has been deprecated.');
+		return document.createElement('div');
+	},
+
+	getVRDisplay: function getVRDisplay() {
+		console.warn('WEBVR.getVRDisplay has been deprecated.');
+	}
 
 };
 
@@ -55405,524 +55625,578 @@ var _started = false;
 var text = void 0;
 
 var SearchBubble = void 0;
+var Pulse = void 0;
 
 init();
 animate();
 
 function fetchRecommendations() {
 
-			(0, _helpers.log)('fetch recs');
+	(0, _helpers.log)('fetch recs');
 
-			if (_config.config.simulation) {
+	if (_config.config.simulation) {
 
-						var size = {
-									x: 1,
-									y: 1.7,
-									z: .1
-						};
+		var size = {
+			x: 1,
+			y: 1.7,
+			z: .1
+		};
 
-						var position = {
-									x: randomIntFromInterval(-.5, .5),
-									y: randomIntFromInterval(5, 10),
-									z: randomIntFromInterval(-.5, .5)
-						};
+		var position = {
+			x: randomIntFromInterval(-.5, .5),
+			y: randomIntFromInterval(5, 10),
+			z: randomIntFromInterval(-.5, .5)
+		};
 
-						var rotation = {
-									x: Math.random() * 2 * Math.PI,
-									y: Math.random() * 2 * Math.PI,
-									z: Math.random() * 2 * Math.PI
-						};
+		var rotation = {
+			x: Math.random() * 2 * Math.PI,
+			y: Math.random() * 2 * Math.PI,
+			z: Math.random() * 2 * Math.PI
+		};
 
-						var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
-						var scale = {
-									x: factor,
-									y: factor,
-									z: factor
+		var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
+		var scale = {
+			x: factor,
+			y: factor,
+			z: factor
 
-									//Add Picture
-						};var picture = new _ComponentPicture2.default({
+			//Add Picture
+		};var picture = new _ComponentPicture2.default({
 
-									size: size,
+			size: size,
 
-									position: position,
-									rotation: rotation,
-									scale: scale,
+			position: position,
+			rotation: rotation,
+			scale: scale,
 
-									containerWireframe: _config.config.picture.containerWireframe,
-									containerOpacity: _config.config.picture.containerOpacity,
-									containerColor: 0xff0000,
+			containerWireframe: _config.config.picture.containerWireframe,
+			containerOpacity: _config.config.picture.containerOpacity,
+			containerColor: 0xff0000,
 
-									images: ['models/textures/me.jpg']
+			images: ['models/textures/me.jpg']
 
-						});
+		});
 
-						pictures.push(picture);
-						picture.getMesh().userData._index = pictures.indexOf(picture);
-						picturesMeshes.add(picture.getMesh());
+		pictures.push(picture);
+		picture.getMesh().userData._index = pictures.indexOf(picture);
+		picturesMeshes.add(picture.getMesh());
 
-						var body = world.add({
-									type: 'box', // type of shape : sphere, box, cylinder 
-									size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
-									pos: [position.x, position.y, position.z], // start position in degree
-									rot: [0, 0, 0], // start rotation in degree
-									move: true, // dynamic or statique
-									density: 1,
-									friction: .5,
-									restitution: 0.2,
-									belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-									collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
-						});
+		var body = world.add({
+			type: 'box', // type of shape : sphere, box, cylinder 
+			size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
+			pos: [position.x, position.y, position.z], // start position in degree
+			rot: [0, 0, 0], // start rotation in degree
+			move: true, // dynamic or statique
+			density: 1,
+			friction: .5,
+			restitution: 0.2,
+			belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+			collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+		});
 
-						bodies.push(body);
-						return;
-			}
+		bodies.push(body);
+		return;
+	}
 
-			fetch(_config.config.API.BASE_URL + '/recs/' + _config.config.API.TOKEN).then(function (response) {
-						return response.json();
-			}).then(function (response) {
+	fetch(_config.config.API.BASE_URL + '/recs/' + _config.config.API.TOKEN).then(function (response) {
+		return response.json();
+	}).then(function (response) {
 
-						(0, _helpers.log)(response);
+		console.log(response);
 
-						var count = 0;
-						response.results.forEach(function (element) {
+		var count = 0;
+		response.results.forEach(function (element) {
 
-									if (count >= _config.config.fetch.ItemsPerCall) return;
+			if (count >= _config.config.fetch.ItemsPerCall) return;
 
-									count++;
+			count++;
 
-									var id = element._id;
+			var id = element._id;
+			var name = element.name;
+			var age = element.age;
 
-									var imageURLs = [];
+			console.log(name);
 
-									//Collect image urls
-									element.photos.forEach(function (element) {
+			var imageURLs = [];
 
-												var photoId = element.id;
-												var dimensions = '640x640';
-												var url = _config.config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
+			//Collect image urls
+			element.photos.forEach(function (element) {
 
-												imageURLs.push(url);
+				var photoId = element.id;
+				var dimensions = '640x640';
+				var url = _config.config.API.BASE_URL + '/image/crop/' + id + '/' + dimensions + '_' + photoId;
 
-												(0, _helpers.log)(url);
-									});
+				imageURLs.push(url);
 
-									var size = {
-												x: 1,
-												y: 1.7,
-												z: .1
-									};
-
-									var position = {
-												x: randomIntFromInterval(-.5, .5),
-												y: randomIntFromInterval(5, 10),
-												z: randomIntFromInterval(-.5, .5)
-									};
-
-									var rotation = {
-												x: Math.random() * 2 * Math.PI,
-												y: Math.random() * 2 * Math.PI,
-												z: Math.random() * 2 * Math.PI
-									};
-
-									var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
-									var scale = {
-												x: factor,
-												y: factor,
-												z: factor
-
-												//Add Picture
-									};var picture = new _ComponentPicture2.default({
-
-												size: size,
-
-												position: position,
-												rotation: rotation,
-												scale: scale,
-
-												containerWireframe: _config.config.picture.containerWireframe,
-												containerOpacity: _config.config.picture.containerOpacity,
-												containerColor: 0xff0000,
-
-												images: imageURLs
-
-									});
-
-									pictures.push(picture);
-									picture.getMesh().userData._index = pictures.indexOf(picture);
-									picturesMeshes.add(picture.getMesh());
-
-									var body = world.add({
-												type: 'box', // type of shape : sphere, box, cylinder 
-												size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
-												pos: [position.x, position.y, position.z], // start position in degree
-												rot: [0, 0, 0], // start rotation in degree
-												move: true, // dynamic or statique
-												density: 1,
-												friction: .5,
-												restitution: 0.2,
-												belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-												collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
-									});
-
-									bodies.push(body);
-						});
+				(0, _helpers.log)(url);
 			});
+
+			var size = {
+				x: 1,
+				y: 1.7,
+				z: .1
+			};
+
+			var position = {
+				x: randomIntFromInterval(-.5, .5),
+				y: randomIntFromInterval(5, 10),
+				z: randomIntFromInterval(-.5, .5)
+			};
+
+			var rotation = {
+				x: Math.random() * 2 * Math.PI,
+				y: Math.random() * 2 * Math.PI,
+				z: Math.random() * 2 * Math.PI
+			};
+
+			var factor = _config.config.picture.fixedScale !== false ? _config.config.picture.fixedScale : Math.random();
+			var scale = {
+				x: factor,
+				y: factor,
+				z: factor
+
+				//Add Picture
+			};var picture = new _ComponentPicture2.default({
+
+				size: size,
+
+				name: name,
+
+				position: position,
+				rotation: rotation,
+				scale: scale,
+
+				containerWireframe: _config.config.picture.containerWireframe,
+				containerOpacity: _config.config.picture.containerOpacity,
+				containerColor: 0xff0000,
+
+				images: imageURLs
+
+			});
+
+			pictures.push(picture);
+			picture.getMesh().userData._index = pictures.indexOf(picture);
+			picture.getMesh().userData._picture = picture;
+
+			picturesMeshes.add(picture.getMesh());
+
+			var body = world.add({
+				type: 'box', // type of shape : sphere, box, cylinder 
+				size: [size.x * scale.x, size.y * scale.y, size.z * scale.z], // size of shape
+				pos: [position.x, position.y, position.z], // start position in degree
+				rot: [0, 0, 0], // start rotation in degree
+				move: true, // dynamic or statique
+				density: 1,
+				friction: .5,
+				restitution: 0.2,
+				belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+				collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+			});
+
+			bodies.push(body);
+		});
+	});
 }
 
 function init() {
 
-			//Physics
-			world = new OIMO.World({
-						timestep: 1 / 60,
-						iterations: 8,
-						broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
-						worldscale: 1, // scale full world 
-						random: true, // randomize sample
-						info: false, // calculate statistic or not
-						gravity: [0, _config.config.world.gravity.y, 0]
-			});
+	//Physics
+	world = new OIMO.World({
+		timestep: 1 / 60,
+		iterations: 8,
+		broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
+		worldscale: 1, // scale full world 
+		random: true, // randomize sample
+		info: false, // calculate statistic or not
+		gravity: [0, _config.config.world.gravity.y, 0]
+	});
 
-			document.body.style.margin = '0';
+	document.body.style.margin = '0';
 
-			container = document.createElement('div');
-			document.body.appendChild(container);
+	container = document.createElement('div');
+	document.body.appendChild(container);
 
-			var info = document.createElement('div');
-			info.style.position = 'absolute';
-			info.style.top = '10px';
-			info.style.width = '100%';
-			info.style.textAlign = 'center';
-			container.appendChild(info);
+	var info = document.createElement('div');
+	info.style.position = 'absolute';
+	info.style.top = '10px';
+	info.style.width = '100%';
+	info.style.textAlign = 'center';
+	container.appendChild(info);
 
-			scene = new THREE.Scene();
-			scene.background = new THREE.Color(0xFFFFFF);
+	scene = new THREE.Scene();
+	scene.background = new THREE.Color(0xFFFFFF);
 
-			scene.fog = new THREE.Fog(0xffffff, 0, _config.config.fog.far);
+	scene.fog = new THREE.Fog(0xffffff, 0, _config.config.fog.far);
 
-			if (_config.config.space.grid) {
-						var size = 1000;
-						var divisions = 1000;
-						scene.add(new THREE.GridHelper(size, divisions));
-			}
+	if (_config.config.space.grid) {
+		var size = 1000;
+		var divisions = 1000;
+		scene.add(new THREE.GridHelper(size, divisions));
+	}
 
-			camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
 
-			scene.add(camera);
+	scene.add(camera);
 
-			text = new _ComponentText2.default();
+	text = new _ComponentText2.default();
 
-			camera.add(text);
+	camera.add(text);
 
-			var geometry = new THREE.PlaneGeometry(10000, 10000);
-			var material = new THREE.MeshStandardMaterial({
-						color: 0xa0a0a0,
-						roughness: 1.0,
-						metalness: 0.0,
-						transparent: true,
-						opacity: _config.config.ground.opacity,
-						side: THREE.DoubleSide
-			});
-			var floor = new THREE.Mesh(geometry, material);
-			floor.rotation.x = Math.PI / 2;
-			floor.receiveShadow = true;
-			scene.add(floor);
+	var geometry = new THREE.PlaneGeometry(10000, 10000);
+	var material = new THREE.MeshStandardMaterial({
+		color: 0xa0a0a0,
+		roughness: 1.0,
+		metalness: 0.0,
+		transparent: true,
+		opacity: _config.config.ground.opacity,
+		side: THREE.DoubleSide
+	});
+	var floor = new THREE.Mesh(geometry, material);
+	floor.rotation.x = Math.PI / 2;
+	floor.receiveShadow = true;
+	scene.add(floor);
 
-			var body = {
-						type: 'box', // type of shape : sphere, box, cylinder 
-						size: [1000, 0.0001, 1000], // size of shape
-						pos: [0, 0, 0], // start position in degree
-						rot: [0, 0, 0], // start rotation in degree
-						move: false, // dynamic or statique
-						density: 1,
-						friction: 1,
-						restitution: 1,
-						belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-						collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
-			};
+	var body = {
+		type: 'box', // type of shape : sphere, box, cylinder 
+		size: [1000, 0.0001, 1000], // size of shape
+		pos: [0, 0, 0], // start position in degree
+		rot: [0, 0, 0], // start rotation in degree
+		move: false, // dynamic or statique
+		density: 1,
+		friction: 1,
+		restitution: 1,
+		belongsTo: 1, // The bits of the collision groups to which the shape belongs.
+		collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+	};
 
-			if (_config.config.ground.body) world.add(body);
+	if (_config.config.ground.body) world.add(body);
 
-			//scene.add( new THREE.AmbientLight( 0xffffff) );
+	scene.add(new THREE.AmbientLight(0xffffff));
 
-			var light = new THREE.HemisphereLight(0x808080, 0x606060, 1);
-			scene.add(light);
+	var light = new THREE.HemisphereLight(0x808080, 0x606060, 1);
+	scene.add(light);
 
-			var light = new THREE.DirectionalLight(0xffffff, 5);
-			light.castShadow = true;
+	var light = new THREE.DirectionalLight(0xffffff, 5);
+	//light.castShadow = true;
+	light.position.set(2, 5, 0);
+	light.shadow.mapSize.set(4096, 4096);
+	scene.add(light);
 
-			light.position.set(2, 5, 0);
-			//light.shadow.camera.top = 2;
-			//light.shadow.camera.bottom = -2;
-			//light.shadow.camera.right = 2;
-			//light.shadow.camera.left = -2;
-			light.shadow.mapSize.set(4096, 4096);
-			scene.add(light);
+	var light = new THREE.DirectionalLight(0xffffff, 5);
+	//light.castShadow = true;
+	light.position.set(-2, 5, 0);
+	light.shadow.mapSize.set(4096, 4096);
+	scene.add(light);
 
-			picturesMeshes = new THREE.Group();
-			scene.add(picturesMeshes);
+	picturesMeshes = new THREE.Group();
+	scene.add(picturesMeshes);
 
-			renderer = new THREE.WebGLRenderer({ antialias: true });
-			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.gammaInput = true;
-			renderer.gammaOutput = true;
-			renderer.shadowMap.enabled = true;
-			renderer.vr.enabled = true;
+	renderer = new THREE.WebGLRenderer({ antialias: true });
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.gammaInput = true;
+	renderer.gammaOutput = true;
+	//renderer.shadowMap.enabled = true;
+	renderer.vr.enabled = true;
 
-			container.appendChild(renderer.domElement);
+	container.appendChild(renderer.domElement);
 
-			document.body.appendChild(WEBVR.createButton(renderer));
+	document.body.appendChild(WEBVR.createButton(renderer));
 
-			// controllers
+	// controllers
 
-			controller1 = new THREE.ViveController(0);
-			controller1.standingMatrix = renderer.vr.getStandingMatrix();
-			controller1.addEventListener('triggerdown', onTriggerDown);
-			controller1.addEventListener('triggerup', onTriggerUp);
-			scene.add(controller1);
+	controller1 = new THREE.ViveController(0);
+	controller1.standingMatrix = renderer.vr.getStandingMatrix();
+	controller1.addEventListener('triggerdown', onTriggerDown);
+	controller1.addEventListener('triggerup', onTriggerUp);
+	scene.add(controller1);
 
-			controller2 = new THREE.ViveController(1);
-			controller2.standingMatrix = renderer.vr.getStandingMatrix();
-			controller2.addEventListener('triggerdown', onTriggerDown2);
-			controller2.addEventListener('triggerup', onTriggerUp2);
-			scene.add(controller2);
+	controller2 = new THREE.ViveController(1);
+	controller2.standingMatrix = renderer.vr.getStandingMatrix();
+	controller2.addEventListener('triggerdown', onTriggerDown2);
+	controller2.addEventListener('triggerup', onTriggerUp2);
+	scene.add(controller2);
 
-			var loader = new THREE.OBJLoader();
-			loader.setPath('models/obj/vive-controller/');
-			loader.load('vr_controller_vive_1_5.obj', function (object) {
+	var loader = new THREE.OBJLoader();
+	loader.setPath('models/obj/vive-controller/');
+	loader.load('vr_controller_vive_1_5.obj', function (object) {
 
-						var loader = new THREE.TextureLoader();
-						loader.setPath('models/obj/vive-controller/');
+		var loader = new THREE.TextureLoader();
+		loader.setPath('models/obj/vive-controller/');
 
-						var controller = object.children[0];
-						controller.material.map = loader.load('onepointfive_texture.png');
-						controller.material.specularMap = loader.load('onepointfive_spec.png');
+		var controller = object.children[0];
+		controller.material.map = loader.load('onepointfive_texture.png');
+		controller.material.specularMap = loader.load('onepointfive_spec.png');
 
-						controller1.add(object.clone());
-						controller2.add(object.clone());
-			});
+		controller1.add(object.clone());
+		controller2.add(object.clone());
+	});
 
-			//Lines
+	//Lines
 
-			var geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+	var geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
 
-			var lineMaterial = new THREE.LineBasicMaterial({
-						color: _config.config.bubble.color,
-						transparent: true,
-						opacity: .25,
-						linewidth: 2,
-						side: THREE.DoubleSide
-			});
+	var lineMaterial = new THREE.LineBasicMaterial({
+		color: _config.config.bubble.color,
+		transparent: true,
+		opacity: .25,
+		linewidth: 2,
+		side: THREE.DoubleSide
+	});
 
-			var line = new THREE.Line(geometry, lineMaterial);
-			line.name = 'line';
-			line.scale.z = 5;
+	var line = new THREE.Line(geometry, lineMaterial);
+	line.name = 'line';
+	line.scale.z = 5;
 
-			controller1.add(line.clone());
-			controller2.add(line.clone());
+	controller1.add(line.clone());
+	controller2.add(line.clone());
 
-			raycaster = new THREE.Raycaster();
+	raycaster = new THREE.Raycaster();
 
-			SearchBubble = new _ComponentSearchBubble2.default();
-			scene.add(SearchBubble.getMesh());
+	//Search bubble
+	SearchBubble = new _ComponentSearchBubble2.default();
+	scene.add(SearchBubble.getMesh());
 
-			var meshGeometry = new THREE.SphereGeometry(.1, 32, 32);
+	//Pulse
+	//Pulse = new PulseComponent();
+	//Pulse.start();
+	//scene.add(Pulse.getMesh())
 
-			var meshMaterial = new THREE.MeshPhongMaterial({
-						color: _config.config.bubble.color,
-						transparent: true,
-						opacity: .25,
-						side: THREE.DoubleSide
-			});
 
-			var mesh = new THREE.Mesh(meshGeometry, meshMaterial);
+	var meshGeometry = new THREE.SphereGeometry(.1, 32, 32);
 
-			controller1.add(mesh);
+	var meshMaterial = new THREE.MeshPhongMaterial({
+		color: _config.config.bubble.color,
+		transparent: true,
+		opacity: .25,
+		side: THREE.DoubleSide
+	});
 
-			controller2.add(mesh.clone());
+	var mesh = new THREE.Mesh(meshGeometry, meshMaterial);
 
-			window.addEventListener('resize', onWindowResize, false);
+	controller1.add(mesh);
+
+	controller2.add(mesh.clone());
+
+	window.addEventListener('resize', onWindowResize, false);
 }
 
 function onWindowResize() {
 
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
 
-			renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function onTriggerDown2() {}
-function onTriggerUp2() {}
+function onTriggerDown2(event) {
+
+	if (!_config.config.picture.browse) return;
+
+	triggerDown = true;
+
+	var controller = event.target;
+
+	var intersections = getIntersectionsOfController(controller);
+
+	if (intersections.length > 0) {
+
+		var intersection = intersections[0];
+
+		var object = intersection.object;
+
+		controller.userData.selected = object;
+	}
+}
+
+function onTriggerUp2(event) {
+
+	if (!_config.config.picture.browse) return;
+
+	triggerDown = false;
+
+	var controller = event.target;
+
+	var pictureMesh = controller.userData.selected;
+
+	pictureMesh.userData._picture.setTexture();
+
+	//console.log(pictureMesh)
+
+	//alert(pictureMesh.userData._index)
+
+}
 
 function onTriggerDown(event) {
 
-			triggerDown = true;
+	triggerDown = true;
 
-			var controller = event.target;
+	var controller = event.target;
 
-			var intersections = getIntersectionsOfController(controller);
+	var intersections = getIntersectionsOfController(controller);
 
-			if (intersections.length > 0) {
+	if (intersections.length > 0) {
 
-						var intersection = intersections[0];
+		var intersection = intersections[0];
 
-						tempMatrix.getInverse(controller.matrixWorld);
+		tempMatrix.getInverse(controller.matrixWorld);
 
-						var object = intersection.object;
-						object.matrix.premultiply(tempMatrix);
-						object.matrix.decompose(object.position, object.quaternion, object.scale);
+		var object = intersection.object;
+		object.matrix.premultiply(tempMatrix);
+		object.matrix.decompose(object.position, object.quaternion, object.scale);
 
-						object.material.emissive.b = 1;
+		object.material.emissive.b = 1;
 
-						//Apply selected object to controller
-						controller.add(object);
+		//Apply selected object to controller
+		controller.add(object);
 
-						controller.userData.selected = object;
-			}
+		controller.userData.selected = object;
+	}
 }
 
 function onTriggerUp(event) {
 
-			triggerDown = false;
+	triggerDown = false;
 
-			var controller = event.target;
+	var controller = event.target;
 
-			if (controller.userData.selected !== undefined) {
+	if (controller.userData.selected !== undefined) {
 
-						var object = controller.userData.selected;
-						object.matrix.premultiply(controller.matrixWorld);
-						object.matrix.decompose(object.position, object.quaternion, object.scale);
+		var object = controller.userData.selected;
+		object.matrix.premultiply(controller.matrixWorld);
+		object.matrix.decompose(object.position, object.quaternion, object.scale);
 
-						object.material.emissive.b = 0;
+		object.material.emissive.b = 0;
 
-						//Apply previously selected object back to the meshes group 
-						//that is influenced by its rigid bodies
-						picturesMeshes.add(object);
+		//Apply previously selected object back to the meshes group 
+		//that is influenced by its rigid bodies
+		picturesMeshes.add(object);
 
-						//Update it's rigid bodies
-						bodies[object.userData._index].resetPosition(object.position.x, object.position.y, object.position.z);
-						bodies[object.userData._index].resetQuaternion(object.quaternion);
+		//Update it's rigid bodies
+		bodies[object.userData._index].resetPosition(object.position.x, object.position.y, object.position.z);
+		bodies[object.userData._index].resetQuaternion(object.quaternion);
 
-						controller.userData.selected = undefined;
-			}
+		controller.userData.selected = undefined;
+	}
 }
 
 function getIntersectionsOfController(controller) {
 
-			tempMatrix.identity().extractRotation(controller.matrixWorld);
+	tempMatrix.identity().extractRotation(controller.matrixWorld);
 
-			raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-			raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+	raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+	raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-			return raycaster.intersectObjects(picturesMeshes.children);
+	return raycaster.intersectObjects(picturesMeshes.children);
 }
 
 function intersectObjects(controller) {
 
-			// Do not highlight when already selected
-			if (controller.userData.selected !== undefined) return;
+	// Do not highlight when already selected
+	if (controller.userData.selected !== undefined) return;
 
-			var line = controller.getObjectByName('line');
-			var intersections = getIntersectionsOfController(controller);
+	var line = controller.getObjectByName('line');
+	var intersections = getIntersectionsOfController(controller);
 
-			if (intersections.length > 0) {
+	if (intersections.length > 0) {
 
-						var intersection = intersections[0];
-						var object = intersection.object;
+		var intersection = intersections[0];
+		var object = intersection.object;
 
-						//object.material.color.setHex(0xff0000)
+		//object.material.color.setHex(0xff0000)
 
-						intersected.push(object);
+		intersected.push(object);
 
-						line.scale.z = intersection.distance;
+		line.scale.z = intersection.distance;
 
-						object.userData.intersected = true;
-			} else {
+		object.userData.intersected = true;
+	} else {
 
-						line.scale.z = 5;
-			}
+		line.scale.z = 5;
+	}
 }
 
 function cleanIntersected() {
 
-			while (intersected.length) {
+	while (intersected.length) {
 
-						var object = intersected.pop();
+		var object = intersected.pop();
 
-						//object.material.color.setHex(0xffffff)
+		//object.material.color.setHex(0xffffff)
 
-						object.userData.intersected = false;
-			}
+		object.userData.intersected = false;
+	}
 }
 
 //
 
 function animate() {
 
-			renderer.setAnimationLoop(render);
+	renderer.setAnimationLoop(render);
 }
 
 function distanceVector(v1, v2) {
-			var dx = v1.x - v2.x;
-			var dy = v1.y - v2.y;
-			var dz = v1.z - v2.z;
+	var dx = v1.x - v2.x;
+	var dy = v1.y - v2.y;
+	var dz = v1.z - v2.z;
 
-			return Math.sqrt(dx * dx + dy * dy + dz * dz);
+	return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 function render() {
 
-			var a = new THREE.Vector3().setFromMatrixPosition(controller1.matrixWorld);
-			var b = new THREE.Vector3().setFromMatrixPosition(controller2.matrixWorld);
+	var a = new THREE.Vector3().setFromMatrixPosition(controller1.matrixWorld);
+	var b = new THREE.Vector3().setFromMatrixPosition(controller2.matrixWorld);
 
-			var distanceBetweenControllers = distanceVector(a, b);
+	var distanceBetweenControllers = distanceVector(a, b);
 
-			if (distanceBetweenControllers > 1) {
-						SearchBubble._grow = true;
-			} else {
-						SearchBubble._grow = false;
-			}
+	if (distanceBetweenControllers > _config.config.distanceHandsStart) {
+		SearchBubble._grow = true;
+	} else {
+		SearchBubble._grow = false;
+	}
 
-			SearchBubble.update();
+	SearchBubble.update();
+	//Pulse.update();
 
-			if (SearchBubble._exploded && !_started) {
+	if (SearchBubble._exploded && !_started) {
 
-						fetchRecommendations();
-						setInterval(function () {
-									fetchRecommendations();
-						}, _config.config.fetch.interval);
+		fetchRecommendations();
+		setInterval(function () {
+			fetchRecommendations();
+		}, _config.config.fetch.interval);
 
-						(0, _helpers.log)('started!!!!');
+		console.log('started!!!!');
 
-						camera.remove(text);
+		camera.remove(text);
+		//Pulse.stop();
 
-						_started = true;
-			}
+		_started = true;
+	}
 
-			controller1.update();
-			controller2.update();
+	controller1.update();
+	controller2.update();
 
-			intersectObjects(controller1);
-			intersectObjects(controller2);
+	intersectObjects(controller1);
+	intersectObjects(controller2);
 
-			cleanIntersected();
+	cleanIntersected();
 
-			world.step();
+	world.step();
 
-			pictures.map(function (picture, index) {
+	pictures.map(function (picture, index) {
 
-						var pictureMesh = picture.getMesh();
+		var pictureMesh = picture.getMesh();
 
-						if (controller1.userData.selected == pictureMesh) return;
+		if (controller1.userData.selected == pictureMesh) return;
 
-						pictureMesh.position.copy(bodies[index].getPosition());
-						pictureMesh.quaternion.copy(bodies[index].getQuaternion());
-			});
+		pictureMesh.position.copy(bodies[index].getPosition());
+		pictureMesh.quaternion.copy(bodies[index].getQuaternion());
+	});
 
-			renderer.render(scene, camera);
+	renderer.render(scene, camera);
 }
-},{"three":8,"oimo":9,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentText":7}],18:[function(require,module,exports) {
+},{"three":9,"oimo":8,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentPulse":15,"./components/ComponentText":7}],23:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -55951,7 +56225,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '51986' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '54980' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -56092,5 +56366,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[18,2], null)
+},{}]},{},[23,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

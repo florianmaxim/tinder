@@ -109,6 +109,12 @@ export default class ComponentPicture {
 
     init(props){
 
+        //Pass name
+        this.name = props.name!==undefined?props.name:'Florian Maxim'
+
+        //Pass age
+        this.age = props.age!==undefined?props.age:'29'
+
         //Pass Images
         this.meshTextures = props.images!==undefined?props.images:[]
 
@@ -127,7 +133,6 @@ export default class ComponentPicture {
         this.meshContainer.castShadow = true;
         this.meshContainer.receiveShadow = true;
 
-
         //Apply position if given
         this.meshContainer.position.set(
             props.position.x,
@@ -143,14 +148,48 @@ export default class ComponentPicture {
         )
 
          //Apply rotation if given
-         this.meshContainer.scale.set(
+        this.meshContainer.scale.set(
             props.scale.x,
             props.scale.y,
             props.scale.z     
         )
 
-        //Init FrameMesh
+        //Add Text
+        var loader = new THREE.FontLoader();
 
+        if(config.picture.caption)
+        loader.load( 'fonts/helvetiker_regular.typeface.json', ( font ) => {
+
+            let geometry = new THREE.TextGeometry(this.name+', '+this.age, {
+                font: font,
+                size: .075,
+                height: .01,
+                curveSegments: 12,
+                bevelEnabled: false,
+            } );
+
+            let material = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: .85,
+                side: THREE.DoubleSide
+            })
+
+    
+            let mesh = new THREE.Mesh(geometry, material)
+
+            const meshBoxSize = new THREE.Box3().setFromObject(mesh).getSize()
+
+            //Why can I not use this???
+            const containerMeshBoxSize = new THREE.Box3().setFromObject(this.meshContainer).getSize()
+    
+            mesh.position.set(-meshBoxSize.x/2,-.75,.05)
+           
+            this.meshContainer.add(mesh)
+            
+
+        } );    
+        
         //Load model
         //new THREE.OBJLoader().load( 
             

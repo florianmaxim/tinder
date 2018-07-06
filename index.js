@@ -6,7 +6,9 @@ import {log} from './helpers'
 
 
 import Picture from './components/ComponentPicture';
+
 import SearchBubbleComponent from './components/ComponentSearchBubble';
+import PulseComponent from './components/ComponentPulse';
 
 import _Text from './components/ComponentText';
 
@@ -1202,6 +1204,7 @@ let _started = false
 let text
 
 let SearchBubble
+let Pulse
 
 init();
 animate();
@@ -1279,7 +1282,7 @@ function fetchRecommendations() {
 	.then((response) => response.json())
 	.then((response) => {
 
-		log(response)
+		console.log(response)
 
 		let count = 0;
 		response.results.forEach(element => {
@@ -1289,6 +1292,10 @@ function fetchRecommendations() {
 			count++;
 
 			const id = element._id
+			const name = element.name
+			const age = element.age
+
+			console.log(name)
 
 			let imageURLs = []
 
@@ -1335,6 +1342,8 @@ function fetchRecommendations() {
 
 				size: size,
 
+				name: name,
+
 				position: position,
 				rotation: rotation,
 				scale: scale,
@@ -1349,6 +1358,8 @@ function fetchRecommendations() {
 
 			pictures.push(picture)
 			picture.getMesh().userData._index = pictures.indexOf(picture)
+			picture.getMesh().userData._picture = picture
+
 			picturesMeshes.add(picture.getMesh())
 
 			var body = world.add({ 
@@ -1445,19 +1456,20 @@ function init() {
 	if(config.ground.body)
 	world.add(body);
 
-	//scene.add( new THREE.AmbientLight( 0xffffff) );
+	scene.add( new THREE.AmbientLight( 0xffffff) );
 
 	var light = new THREE.HemisphereLight( 0x808080, 0x606060, 1 )
 	scene.add( light );
 
 	var light = new THREE.DirectionalLight( 0xffffff, 5 );
-	light.castShadow = true;
-
+	//light.castShadow = true;
 	light.position.set( 2, 5, 0 );
-	//light.shadow.camera.top = 2;
-	//light.shadow.camera.bottom = -2;
-	//light.shadow.camera.right = 2;
-	//light.shadow.camera.left = -2;
+	light.shadow.mapSize.set( 4096, 4096 );
+	scene.add( light );
+
+	var light = new THREE.DirectionalLight( 0xffffff, 5 );
+	//light.castShadow = true;
+	light.position.set( -2, 5, 0 );
 	light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
 
@@ -1469,7 +1481,7 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	renderer.shadowMap.enabled = true;
+	//renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
 	
 	container.appendChild( renderer.domElement );
@@ -1528,10 +1540,14 @@ function init() {
 
 	raycaster = new THREE.Raycaster();
 
-
-	
+	//Search bubble
 	SearchBubble = new SearchBubbleComponent();
 	scene.add(SearchBubble.getMesh())
+
+	//Pulse
+	//Pulse = new PulseComponent();
+	//Pulse.start();
+	//scene.add(Pulse.getMesh())
 
 
 	let meshGeometry = new THREE.SphereGeometry( .1, 32, 32 );
@@ -1564,9 +1580,46 @@ function onWindowResize() {
 }
 
 
-function onTriggerDown2(){
+function onTriggerDown2( event ){
+
+	if(!config.picture.browse) return;
+
+	triggerDown = true
+
+	var controller = event.target;
+
+	var intersections = getIntersectionsOfController( controller );
+
+	if ( intersections.length > 0 ) {
+
+		var intersection = intersections[ 0 ];
+
+		var object = intersection.object;
+
+		controller.userData.selected = object;
+
+	}
+
 }
-function onTriggerUp2(){
+
+function onTriggerUp2( event ){
+
+	if(!config.picture.browse) return;
+
+	triggerDown = false
+
+	var controller = event.target;
+
+	let pictureMesh = controller.userData.selected
+
+	pictureMesh.userData._picture.setTexture()
+
+	//console.log(pictureMesh)
+
+	//alert(pictureMesh.userData._index)
+
+
+
 }
 
 function onTriggerDown( event ) {
@@ -1704,13 +1757,14 @@ function render() {
 
 	const distanceBetweenControllers = distanceVector(a,b)
 
-	if(distanceBetweenControllers>1){
+	if(distanceBetweenControllers>config.distanceHandsStart){
 		SearchBubble._grow = true
 	}else{
 		SearchBubble._grow = false
 	}
 
 	SearchBubble.update();
+	//Pulse.update();
 
 	if(SearchBubble._exploded&&!_started){
 
@@ -1719,9 +1773,10 @@ function render() {
 			fetchRecommendations();
 		}, config.fetch.interval)	
 
-		log('started!!!!')
+		console.log('started!!!!')
 
 		camera.remove(text)
+		//Pulse.stop();
 
 		_started = true;
 	

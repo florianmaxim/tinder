@@ -137,10 +137,6 @@ export default class ComponentText {
 
 
             //Logo
-            geometry = new THREE.PlaneGeometry(.1,.1 );
-
-            geometry  = makeRoundedCornerPlane(.1, .1, 0.05)
-
 
             const textureLoader = new THREE.TextureLoader()
             textureLoader.crossOrigin = "Anonymous"
@@ -150,11 +146,13 @@ export default class ComponentText {
 
                 ( texture ) => {
 
+                    geometry  = makeRoundedCornerPlane(.1, .1, 0.05)
 
-                    material = new THREE.MeshBasicMaterial({
+
+                    material = new THREE.MeshStandardMaterial({
                         color: config.text.color,
                         transparent: true,
-                        opacity: .85,
+                        opacity: 1,
                         side: THREE.DoubleSide,
                         map: texture
                     })

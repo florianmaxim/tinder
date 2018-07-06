@@ -1,15 +1,15 @@
 const config = {
     
-    simulation: true,
+    simulation: false,
 
-    debug : false,
+    debug : true,
 
     API : {
         BASE_URL : "http://192.168.178.126:8888",
-        TOKEN : "17af94b6-1544-4a8b-b872-40b53891a650",
+        TOKEN : "33b04764-dfcf-456a-b5e3-9d7db8d8bbef",
 
         tinder : {
-            ACCESS_TOKEN : "17af94b6-1544-4a8b-b872-40b53891a650"
+            ACCESS_TOKEN : "33b04764-dfcf-456a-b5e3-9d7db8d8bbef"
         },
 
         facebook : {
@@ -42,6 +42,9 @@ const config = {
         frame : false,
         rotatinon: false,
 
+        caption: true,
+        browse: true,
+
         fixedScale : false,
 
         containerOpacity : 0.25,
@@ -50,8 +53,8 @@ const config = {
     },
 
     fetch: {
-        ItemsPerCall : 10,
-        interval : 10000
+        ItemsPerCall : 16,
+        interval : 57000
     },
 
     bubble: {
@@ -63,7 +66,9 @@ const config = {
         start: "Open your arms.",
         color : 0x333333
 
-    }
+    },
+
+    distanceHandsStart: .85
 }
 
 export {config}
