@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({9:[function(require,module,exports) {
+})({11:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],8:[function(require,module,exports) {
+},{}],10:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53799,7 +53799,8 @@ var config = {
     },
 
     space: {
-        grid: true
+        grid: false,
+        shadow: true
     },
 
     fog: {
@@ -53823,7 +53824,7 @@ var config = {
         frame: false,
         rotatinon: false,
 
-        caption: true,
+        caption: false,
         browse: true,
 
         fixedScale: false,
@@ -53835,7 +53836,7 @@ var config = {
 
     fetch: {
         ItemsPerCall: 16,
-        interval: 57000
+        interval: 30000
     },
 
     bubble: {
@@ -54178,7 +54179,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config":3,"three":9}],6:[function(require,module,exports) {
+},{"../config":3,"three":11}],6:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54247,7 +54248,7 @@ var ComponentSearchBubble = function () {
 }();
 
 exports.default = ComponentSearchBubble;
-},{"../config":3,"three":9}],15:[function(require,module,exports) {
+},{"../config":3,"three":11}],7:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54338,7 +54339,7 @@ var ComponentPulse = function () {
 }();
 
 exports.default = ComponentPulse;
-},{"../config":3,"three":9}],7:[function(require,module,exports) {
+},{"../config":3,"three":11}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54534,7 +54535,7 @@ var ComponentText = function () {
 }();
 
 exports.default = ComponentText;
-},{"../config":3,"three":9}],2:[function(require,module,exports) {
+},{"../config":3,"three":11}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -55853,7 +55854,7 @@ function init() {
 	});
 	var floor = new THREE.Mesh(geometry, material);
 	floor.rotation.x = Math.PI / 2;
-	floor.receiveShadow = true;
+	if (_config.config.space.shadow) floor.receiveShadow = true;
 	scene.add(floor);
 
 	var body = {
@@ -55877,13 +55878,13 @@ function init() {
 	scene.add(light);
 
 	var light = new THREE.DirectionalLight(0xffffff, 5);
-	//light.castShadow = true;
+	if (_config.config.space.shadow) light.castShadow = true;
 	light.position.set(2, 5, 0);
 	light.shadow.mapSize.set(4096, 4096);
 	scene.add(light);
 
 	var light = new THREE.DirectionalLight(0xffffff, 5);
-	//light.castShadow = true;
+	if (_config.config.space.shadow) light.castShadow = true;
 	light.position.set(-2, 5, 0);
 	light.shadow.mapSize.set(4096, 4096);
 	scene.add(light);
@@ -55896,7 +55897,7 @@ function init() {
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	//renderer.shadowMap.enabled = true;
+	if (_config.config.space.shadow) renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
 
 	container.appendChild(renderer.domElement);
@@ -56196,7 +56197,7 @@ function render() {
 
 	renderer.render(scene, camera);
 }
-},{"three":9,"oimo":8,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentPulse":15,"./components/ComponentText":7}],23:[function(require,module,exports) {
+},{"three":11,"oimo":10,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentPulse":7,"./components/ComponentText":8}],16:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -56225,7 +56226,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '54980' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '63349' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -56366,5 +56367,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[23,2], null)
+},{}]},{},[16,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map

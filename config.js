@@ -18,7 +18,8 @@ const config = {
     },
 
     space : {
-        grid : true
+        grid : false,
+        shadow: true
     },
 
     fog : {
@@ -42,7 +43,7 @@ const config = {
         frame : false,
         rotatinon: false,
 
-        caption: true,
+        caption: false,
         browse: true,
 
         fixedScale : false,
@@ -54,7 +55,7 @@ const config = {
 
     fetch: {
         ItemsPerCall : 16,
-        interval : 57000
+        interval : 30000
     },
 
     bubble: {

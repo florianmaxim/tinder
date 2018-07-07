@@ -1437,6 +1437,7 @@ function init() {
 	} );
 	var floor = new THREE.Mesh( geometry, material );
 	floor.rotation.x =  Math.PI / 2;
+	if(config.space.shadow)
 	floor.receiveShadow = true;
 	scene.add( floor );
 
@@ -1462,13 +1463,15 @@ function init() {
 	scene.add( light );
 
 	var light = new THREE.DirectionalLight( 0xffffff, 5 );
-	//light.castShadow = true;
+	if(config.space.shadow)
+	light.castShadow = true;
 	light.position.set( 2, 5, 0 );
 	light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
 
 	var light = new THREE.DirectionalLight( 0xffffff, 5 );
-	//light.castShadow = true;
+	if(config.space.shadow)	
+	light.castShadow = true;
 	light.position.set( -2, 5, 0 );
 	light.shadow.mapSize.set( 4096, 4096 );
 	scene.add( light );
@@ -1481,7 +1484,8 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	//renderer.shadowMap.enabled = true;
+	if(config.space.shadow)
+	renderer.shadowMap.enabled = true;
 	renderer.vr.enabled = true;
 	
 	container.appendChild( renderer.domElement );
