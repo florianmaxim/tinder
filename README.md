@@ -1,6 +1,6 @@
 # <p align="center">TinderX</p>
 
-## <p align="center">A Spatial Tinder Implementation<br/> a.k.a.<br/> "The Space Between us / 18-55+"</p>
+## <p align="center">A Spatial Tinder Implementation<p>a.k.a.</p>"The Space Between us / 18-55+"</p>
 
 # <p align="center">Excerpt</p>
 
