@@ -4,8 +4,10 @@
 
 # <p align="center">Excerpt</p>
 
+<p align="center">
 Hey Lovers. 
-Tinder creates the impression of a manageabilityof an unlimited supply of available partners. In a sequential row, a linear stream, pictures of potential matches appear ordered – one after another – reducing the potentiality of messy open-ended face-to-face social interaction. By the iconic gesture of “swiping”, efficient and irrevocable decision-making, we move on in this stream of possible romantic encounters. Visual as well as tactile stimulation is predominant, whereas the rest of the body becomes detached. The regulation of the social encounter is achieved by spatial principles: The digital “architecture” we face within the “tinder experience” structures not only our perspectives, gazes or bodily sensations, but also our relationship narratives. The order of space determines the order of love. Taking place in Virtual Reality (VR), “The space between us/18-55+“restructures the spatial and sensational regime that tinder constructs. 
+Tinder creates the impression of a manageabilityof an unlimited supply of available partners. In a sequential row, a linear stream, pictures of potential matches appear ordered – one after another – reducing the potentiality of messy open-ended face-to-face social interaction. By the iconic gesture of “swiping”, efficient and irrevocable decision-making, we move on in this stream of possible romantic encounters. Visual as well as tactile stimulation is predominant, whereas the rest of the body becomes detached. The regulation of the social encounter is achieved by spatial principles: The digital “architecture” we face within the “tinder experience” structures not only our perspectives, gazes or bodily sensations, but also our relationship narratives. The order of space determines the order of love. Taking place in Virtual Reality (VR), “The space between us/18-55+“restructures the spatial and sensational regime that tinder constructs.
+</p> 
 
 <p align="center">
 <img src="research/screen-1.jpg"/>
