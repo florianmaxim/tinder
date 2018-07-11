@@ -1,6 +1,6 @@
 const config = {
     
-    simulation: false,
+    simulation: true,
 
     debug : true,
 

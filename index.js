@@ -12,6 +12,7 @@ import PulseComponent from './components/ComponentPulse';
 
 import _Text from './components/ComponentText';
 
+
 function randomIntFromInterval(min,max)
 {
     return Math.floor(Math.random()*(max-min+1)+min);
@@ -1490,7 +1491,24 @@ function init() {
 	
 	container.appendChild( renderer.domElement );
 
-	document.body.appendChild( WEBVR.createButton( renderer ) );
+	//document.body.appendChild( WEBVR.createButton( renderer ) );
+
+	const element = document.createElement('div')
+
+	element.innerHTML = 'The<br/> Space<br/> Between<br/> Us<br/> / 18-55+'
+
+	element.style.color = 'red'
+	element.style.fontSize = '140pt'
+
+	element.style.fontStyle = 'italic'
+
+	element.style.textTransform= 'uppercase'
+	element.style.position = 'fixed'
+	element.style.left  = '50%'
+	element.style.top = '0'
+
+	document.body.appendChild(element)
+
 
 	// controllers
 

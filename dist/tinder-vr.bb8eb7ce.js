@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({11:[function(require,module,exports) {
+})({10:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -41977,7 +41977,7 @@ exports.Projector = Projector;
 exports.CanvasRenderer = CanvasRenderer;
 exports.SceneUtils = SceneUtils;
 exports.LensFlare = LensFlare;
-},{}],10:[function(require,module,exports) {
+},{}],9:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53773,7 +53773,7 @@ exports.JOINT_PRISMATIC = JOINT_PRISMATIC;
 exports.AABB_PROX = AABB_PROX;
 exports.printError = printError;
 exports.InfoDisplay = InfoDisplay;
-},{}],3:[function(require,module,exports) {
+},{}],4:[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -53781,7 +53781,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 var config = {
 
-    simulation: false,
+    simulation: true,
 
     debug: true,
 
@@ -53854,7 +53854,7 @@ var config = {
 };
 
 exports.config = config;
-},{}],4:[function(require,module,exports) {
+},{}],3:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53873,7 +53873,7 @@ var log = function log(props) {
 };
 
 exports.log = log;
-},{"./config":3}],5:[function(require,module,exports) {
+},{"./config":4}],5:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54179,7 +54179,7 @@ var ComponentPicture = function () {
 }();
 
 exports.default = ComponentPicture;
-},{"../config":3,"three":11}],6:[function(require,module,exports) {
+},{"../config":4,"three":10}],6:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54248,7 +54248,7 @@ var ComponentSearchBubble = function () {
 }();
 
 exports.default = ComponentSearchBubble;
-},{"../config":3,"three":11}],7:[function(require,module,exports) {
+},{"../config":4,"three":10}],7:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54339,7 +54339,7 @@ var ComponentPulse = function () {
 }();
 
 exports.default = ComponentPulse;
-},{"../config":3,"three":11}],8:[function(require,module,exports) {
+},{"../config":4,"three":10}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54535,7 +54535,7 @@ var ComponentText = function () {
 }();
 
 exports.default = ComponentText;
-},{"../config":3,"three":11}],2:[function(require,module,exports) {
+},{"../config":4,"three":10}],2:[function(require,module,exports) {
 'use strict';
 
 var _three = require('three');
@@ -55902,7 +55902,23 @@ function init() {
 
 	container.appendChild(renderer.domElement);
 
-	document.body.appendChild(WEBVR.createButton(renderer));
+	//document.body.appendChild( WEBVR.createButton( renderer ) );
+
+	var element = document.createElement('div');
+
+	element.innerHTML = 'The<br/> Space<br/> Between<br/> Us<br/> / 18-55+';
+
+	element.style.color = 'red';
+	element.style.fontSize = '140pt';
+
+	element.style.fontStyle = 'italic';
+
+	element.style.textTransform = 'uppercase';
+	element.style.position = 'fixed';
+	element.style.left = '50%';
+	element.style.top = '0';
+
+	document.body.appendChild(element);
 
 	// controllers
 
@@ -56197,7 +56213,7 @@ function render() {
 
 	renderer.render(scene, camera);
 }
-},{"three":11,"oimo":10,"./config":3,"./helpers":4,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentPulse":7,"./components/ComponentText":8}],16:[function(require,module,exports) {
+},{"three":10,"oimo":9,"./config":4,"./helpers":3,"./components/ComponentPicture":5,"./components/ComponentSearchBubble":6,"./components/ComponentPulse":7,"./components/ComponentText":8}],11:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -56226,7 +56242,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '63349' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '49871' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -56367,5 +56383,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[16,2], null)
+},{}]},{},[11,2], null)
 //# sourceMappingURL=/tinder-vr.bb8eb7ce.map
