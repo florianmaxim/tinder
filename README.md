@@ -1,21 +1,19 @@
-# <p align="center">🔥 TinderVR</p>
+# <p align="center">TinderX</p>
 
-## <p align="center">A Spatial Tinder Implementation</p>
+## <p align="center">A Spatial Tinder Implementation a.k.a. "The Space Between us / 18-55+"</p>
 
-### <p align="center">An endless white space is constantly being filled with human recommendations falling from the sky.</p>
+# <p align="center">Excerpt</p>
 
-- There is a white room.
-- Tinder cards are falling from the ceiling.
-- It never stops.
-
-- Once a human being is there you can not throw it away it will always remain in that white room with you
-- 
+Hey Lovers. 
+Tinder creates the impression of a manageabilityof an unlimited supply of available partners. In a sequential row, a linear stream, pictures of potential matches appear ordered – one after another – reducing the potentiality of messy open-ended face-to-face social interaction. By the iconic gesture of “swiping”, efficient and irrevocable decision-making, we move on in this stream of possible romantic encounters. Visual as well as tactile stimulation is predominant, whereas the rest of the body becomes detached. The regulation of the social encounter is achieved by spatial principles: The digital “architecture” we face within the “tinder experience” structures not only our perspectives, gazes or bodily sensations, but also our relationship narratives. The order of space determines the order of love. Taking place in Virtual Reality (VR), “The space between us/18-55+“restructures the spatial and sensational regime that tinder constructs. 
 
 <p align="center">
 <img src="research/screen-1.jpg"/>
 </p>
 
-## <p align="center">Usage</p>
+# <p align="center">Usage</p>
+
+# <p align="center">Configuration</p>
 
 config.js
 ```script
